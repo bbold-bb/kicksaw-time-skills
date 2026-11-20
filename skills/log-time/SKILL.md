@@ -266,7 +266,7 @@ Report record names, day totals, and anything still unaccounted for.
 
 ## Step 8: Refresh the dashboards
 
-Run this right after Step 7, on every run that wrote at least one time record. It never waits for the user to ask for a report. time-report is installed beside this skill; its script is `../time-report/time_report.py` from this folder.
+Run this right after Step 7, on every run that wrote at least one time record. It never waits for the user to ask for a report. time-report is installed beside this skill; its script is `../time-report/time_report.py` from this folder. Run Python as python3 on a Mac, and as py -3 on Windows (or python if that is the one that prints a Python 3 version).
 
 - **Local dashboard, inline.** Run `time_report.py week --dashboard` and give the user the `file://` link the script prints. It takes seconds. Do not open the browser; that is time-report's job when they ask.
 - **Published dashboard, in the background.** Only when the profile has `dashboard.artifact_url`. Launch one background agent (the Agent tool) on a small, fast model, passing the model explicitly; the work is mechanical. Brief it with the artifact URL, the user's name, and the *Published dashboard* procedure in time-report's `SKILL.md`, which it follows step by step. Do not wait for it: finish the Step 7 report, and pass on its one-line result when it arrives. If it fails, say so, with what failed; the time records are already written and correct either way.
