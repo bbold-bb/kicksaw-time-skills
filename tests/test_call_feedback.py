@@ -22,7 +22,7 @@ def section(text, start, end):
 
 def test_version_is_1_19_0():
     for p in (LOG, REPORT):
-        assert re.search(r"^version: 1\.19\.0$", read(p), re.M), p
+        assert re.search(r"^version: 1\.19\.[01]$", read(p), re.M), p
     assert "## 1.19.0 (" in read("CHANGELOG.md")
 
 
@@ -195,3 +195,19 @@ def test_dashboard_query_is_not_a_blind_limit_one():
     t = read("skills/log-time/reference/taskray.md")
     assert "ORDER BY LastModifiedDate DESC" in t
     assert "sf org display -o <alias> --json" in read(REPORT)
+
+
+# 1.19.1: existing profiles answer the new questions once
+
+def test_existing_profiles_get_the_new_questions_once():
+    log = read(LOG)
+    s = section(log, "### New questions for existing profiles", "### Directory matching")
+    assert "no `uses_google_tasks`" in s
+    for q in ("Do you color-code projects on your calendar?",
+              "Do you track work as Google Tasks?",
+              "What timezone do you work in?"):
+        assert q in s, q
+    assert "asked once" in s
+    i = log.index("If it exists, run the **org drift check**")
+    assert "new questions" in log[i:i + 400]
+    assert re.search(r"^version: 1\.19\.1$", log, re.M)

@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.19.0
+version: 1.19.1
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -34,7 +34,7 @@ Before anything else, check the tools this skill needs. Silent when everything i
 
 If `sf` isn't found, or the org check fails with an authentication error (expired or missing login), stop and offer to fix it: "The Salesforce CLI isn't set up (or your Kicksaw sign-in expired). Want me to fix that now?" On a yes, download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow its *Salesforce CLI* or *Org login* step, whichever failed. Don't print a login command for the user to run. Any other failure (a network error, a query error) is not a setup problem: report it as usual.
 
-Read the profile from `~/.claude/kicksaw-time/profile.json`. If it is not there, look in the legacy locations (`profile.json` beside this file, then `~/.claude/skills/log-time/profile.json`); if it turns up in one of those, move it to the home location, say you did, and carry on. The profile is the user's data and lives outside the skill folder so that installing or updating a skill can never replace it. If it does not exist, or the user asks to reset it, run **Setup** below before anything else. If it exists, run the **org drift check** every time, and the **re-verification** when a trigger fires. Both finish before Step 1.
+Read the profile from `~/.claude/kicksaw-time/profile.json`. If it is not there, look in the legacy locations (`profile.json` beside this file, then `~/.claude/skills/log-time/profile.json`); if it turns up in one of those, move it to the home location, say you did, and carry on. The profile is the user's data and lives outside the skill folder so that installing or updating a skill can never replace it. If it does not exist, or the user asks to reset it, run **Setup** below before anything else. If it exists, run the **org drift check** every time, the **re-verification** when a trigger fires, and the **new questions** when the profile predates them. All finish before Step 1.
 
 ### Asking questions
 
@@ -76,6 +76,16 @@ Setup asks as little as possible. What can be read is read; the user confirms it
    - "Save this profile?" Before it, show a short summary: projects with labels, mapped folders, mapped channels, calendar, timezone. Options: "Save it" (Recommended) and "Change something", where "Other" names the change.
 
 `conventions` starts empty and grows only when the user states a rule during a run. Save the profile with `verified_on` set to today. Skip the drift check on a profile saved seconds ago, then continue into Step 1 with the scope the user originally asked for.
+
+### New questions for existing profiles
+
+Profiles saved before 1.19.0 never answered three setup questions. When the profile has no `uses_google_tasks` key in `rhythm`, ask them now, asked once and never again, in one pop-up before Step 1. Start with one line: "A few new setup questions, asked once."
+
+- "Do you color-code projects on your calendar?" and, on a yes, the per-project color questions, exactly as in Setup step 7.
+- "Do you track work as Google Tasks?" as in Setup step 7, including what to say on a yes.
+- "What timezone do you work in?" as in Setup step 8, with the profile's current `rhythm.timezone` as the first option when it matches the computer's, and the computer's timezone first, marked "(Recommended)", when it doesn't.
+
+Save `rhythm.uses_google_tasks`, a `color_id` on every project (null when there is none), and `rhythm.timezone`, together with anything the drift check or re-verification changed. The `uses_google_tasks` key being present is what marks the questions as answered.
 
 ### Directory matching
 
