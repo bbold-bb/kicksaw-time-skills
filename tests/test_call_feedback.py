@@ -211,3 +211,20 @@ def test_existing_profiles_get_the_new_questions_once():
     i = log.index("If it exists, run the **org drift check**")
     assert "new questions" in log[i:i + 400]
     assert re.search(r"^version: 1\.19\.1$", log, re.M)
+
+
+# Guide tabs: Get started and What's new
+
+def test_guide_has_two_tabs_and_whats_new():
+    g = html.unescape(read("docs/time-skills-guide.html"))
+    assert 'id="tab-start"' in g and 'id="tab-new"' in g
+    assert 'id="whats-new"' in g
+    new = g[g.index('id="whats-new"'):]
+    version = re.search(r"^version: (\S+)$", read(LOG), re.M).group(1)
+    assert version in new
+    for s in ("From team feedback", "Coming next", "Comment on this page"):
+        assert s in new, s
+
+
+def test_readme_points_the_team_to_whats_new():
+    assert "What's new" in read("README.md")
