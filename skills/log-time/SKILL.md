@@ -67,12 +67,12 @@ Setup asks as little as possible. What can be read is read; the user confirms it
 6. **Slack.** Confirm the Slack connector by searching for messages from the user in the last 30 days; the search tool reports the acting user's Id, which becomes `slack.user_id`. If the connector is not connected, say so, save `"slack": null`, and continue. Slack is an evidence source, not a gate, and every later run notes that it is missing.
    For each project, find its channels: a channel search across public and private channels using the account name and its obvious short forms, plus the channels the user posted in during the last 90 days whose name matches. **Verify every candidate live** (resolve the Id and read back the name, purpose, and the user's message count). Then one pop-up, one **multi-select** question per project: "Which of these channels are for <Label>?", each option a channel with its purpose and message count. A project with no candidates gets no question. Set `client_facing` to true for a `kicksaw_<client>` or `kicksaw-<client>` channel and false otherwise; the summary in step 8 shows it for correction.
    Every other channel stays unmapped and is asked about on the first run that finds the user posting in it. Group DMs and DMs are never mapped; they are attributed from content at run time (Step 3).
-7. **Calendar.** `rhythm.calendar_account` is the org username. Confirm it by listing one day of that calendar. If that fails, offer the calendars the connector can see as options. Then one pop-up, two questions:
-   - "Do you color-code projects on your calendar?" Options: "No" and "Yes". On a yes, list the last 30 days of events, and for each project take the color most used on events whose title carries its label or client name. Show the result as one question per project ("ClientA looks like Peacock. Right?"), with the other colors as options, and save its Google event color Id as the project's `color_id`. Color names: 1 Lavender, 2 Sage, 3 Grape, 4 Flamingo, 5 Banana, 6 Tangerine, 7 Peacock, 8 Graphite, 9 Blueberry, 10 Basil, 11 Tomato. On a no, `color_id` stays null for every project. Labels stay the main signal either way, since people change colors between projects.
+7. **Calendar.** `rhythm.calendar_account` is the org username. Confirm it by listing one day of that calendar. If that fails, offer the calendars the connector can see as options. Then one pop-up, two questions (the per-project color questions follow in their own pop-ups):
+   - "Do you color-code projects on your calendar?" Options: "No" and "Yes". On a yes, list the last 30 days of events, and for each project take the color most used on events whose title carries its label or client name. Show the result as one question per project, four projects per pop-up ("ClientA looks like Peacock. Right?"), with three options: the inferred color (Recommended), the runner-up color, and "No color for this project"; "Other" takes a color name. Save the Google event color Id as the project's `color_id`. When two projects share a color, save no `color_id` for either and say why. Color names: 1 Lavender, 2 Sage, 3 Grape, 4 Flamingo, 5 Banana, 6 Tangerine, 7 Peacock, 8 Graphite, 9 Blueberry, 10 Basil, 11 Tomato. On a no, `color_id` stays null for every project. Labels stay the main signal either way, since people change colors between projects.
    - "Do you track work as Google Tasks?" Options: "No" and "Yes". On a yes, say: "The calendar connector can't see Google Tasks, so I won't find work you tracked only as a task. When I list unaccounted time, tell me what those gaps were, or put the work on your calendar as an event." Save `rhythm.uses_google_tasks` either way.
 8. **Workday, timezone, and save.** One last pop-up, three questions:
    - "What are your usual work hours?" Options: 9:00 to 5:00 (Recommended), 8:00 to 4:30, 8:30 to 5:00, with "Other" for anything else. They set `rhythm.workday_start` and `workday_end`. They only shape gap-finding; after-hours work is still logged.
-   - "What timezone do you work in?" The first option, marked "(Recommended)", is the computer's timezone: on a Mac, the part of `readlink /etc/localtime` after `zoneinfo/`; on Windows, `(Get-TimeZone).Id` in PowerShell, translated to its IANA name ("Eastern Standard Time" is `America/New_York`). Add the Salesforce `TimeZoneSidKey` as a second option when it differs. The answer is `rhythm.timezone`.
+   - "What timezone do you work in?" The first option, marked "(Recommended)", is the computer's timezone: on a Mac, the part of `readlink /etc/localtime` after `zoneinfo/`; on Windows, `(Get-TimeZone).Id` in PowerShell, converted to its IANA name with `$iana = $null; [System.TimeZoneInfo]::TryConvertWindowsIdToIanaId((Get-TimeZone).Id, [ref]$iana); $iana` (PowerShell 7). Where that isn't available, use this table: Eastern Standard Time is `America/New_York`, Central Standard Time `America/Chicago`, Mountain Standard Time `America/Denver`, US Mountain Standard Time `America/Phoenix`, Pacific Standard Time `America/Los_Angeles`, Alaskan Standard Time `America/Anchorage`, Hawaiian Standard Time `Pacific/Honolulu`. Put the IANA name in the option label so the user confirms it. Add the Salesforce `TimeZoneSidKey` as a second option when it differs. The answer is `rhythm.timezone`.
    - "Save this profile?" Before it, show a short summary: projects with labels, mapped folders, mapped channels, calendar, timezone. Options: "Save it" (Recommended) and "Change something", where "Other" names the change.
 
 `conventions` starts empty and grows only when the user states a rule during a run. Save the profile with `verified_on` set to today. Skip the drift check on a profile saved seconds ago, then continue into Step 1 with the scope the user originally asked for.
@@ -238,7 +238,7 @@ One message, laid out like this:
 | --- | --- | --- | --- |
 | 9:00 to 10:00 am | ClientA: Sprint planning | 1.0h | already on calendar |
 | 10:00 to 11:30 am | ClientA: Built intake flow | 1.5h | new · Slack thread with the team |
-| 1:00 to 1:30 pm | Internal: Status report | 0.5h | new · overlaps the 1:00 call |
+| 1:00 to 1:30 pm | Internal: Status report | 0.5h | new · Slack thread on the report |
 
 ### Tue 11/17 · 7.0h on the calendar (1.5h new)
 
@@ -265,20 +265,22 @@ Answer the questions above, then: write these events to your calendar?
 - **Needs your call** lists the ambiguous calls, numbered: overlapping meetings, heavy work during an invited meeting on another project, DMs with unclear attribution, work that spans midnight, internal versus billable, anything with thin evidence. Ask them through the option pop-up (*Asking questions*) right after the message.
 - **Unaccounted** lists gaps with no evidence at all, one line per day with a per-day subtotal and a grand total, duration in parentheses. Never pad it with sub-25-minute gaps. When the profile has `rhythm.uses_google_tasks`, add one line under it: "Tasks don't show up here. If any of these gaps were a task, tell me what it was."
 
+What the user says about a gap becomes a new event in this same Stage 1 proposal: add it to its day's table, show the changed days again, and ask once more. Gap answers that come after Stage 2 is approved go through both stages again, for those events and records only.
+
 Then stop and wait. The approval writes the calendar events (Step 5) and nothing else. The user can skip the calendar ("records only"): then go straight to Stage 2.
 
 ### Stage 2: time records
 
-Propose the records only after the calendar events are written (or skipped). First say: "Your calendar is updated. Have a look, and tell me if anything should move." Wait until they have checked their calendar and say it looks right, applying any changes they ask for to the calendar first. Then build the records from the calendar as it now stands and show one message, laid out like this:
+Propose the records only after the calendar events are written (or skipped). First say: "Your calendar is updated. Have a look, and tell me if anything should move." Wait until they have checked their calendar and say it looks right, applying any changes they ask for to the calendar first. On the records-only path, skip that and say: "Skipping the calendar. Here are the time records." Then re-run the Step 3 deduplication over the calendar as it now stands. Events created in this run keep the rank of the evidence they came from under the *Overlapping sources* order; they don't count as events the user created themselves. Show one message, laid out like this:
 
 ```
 ## Proposed time records · 9 records, 24.5h
 
-| Date | Project | Activity Type | Hours | Notes |
-| --- | --- | --- | --- | --- |
-| Mon 11/16 | ClientA | Meeting | 1.0 | ClientA: Sprint planning |
-| Mon 11/16 | ClientA | Coding and Configuration | 1.5 | ClientA: Built intake flow |
-| Mon 11/16 | Internal | Documentation | 0.5 | Internal: Status report |
+| Date | Project | Activity Type | Hours | Notes | Record |
+| --- | --- | --- | --- | --- | --- |
+| Mon 11/16 | ClientA | Meeting | 1.0 | ClientA: Sprint planning | New |
+| Mon 11/16 | ClientA | Coding and Configuration | 1.5 | ClientA: Built intake flow | New |
+| Mon 11/16 | Internal | Documentation | 0.5 | Internal: Status report | Adds to TT-01234 (now 1.5h) |
 
 **By project**
 
@@ -287,14 +289,14 @@ Propose the records only after the calendar events are written (or skipped). Fir
 | ClientA | 18.0 | 22.0 | 30 |
 | Internal | 6.5 | 8.0 | 10 |
 
-**Day totals:** Mon 8.0 · Tue 7.5 · Wed 9.0
+**Day totals:** Mon 8.0 · Tue 7.5 · Wed 9.0 · Thu 0 (nothing new)
 
-Records can be changed later only on the day they were written, so check them now.
+This skill only changes a record on the day it was written, so check them now.
 
 These are exactly what will be written. Write them?
 ```
 
-- One row per date, per project, per Activity Type, with hours from the deduplicated timeline. The Activity Type is its own column so it can be corrected before anything is written. Notes are what Step 6 will write.
+- One row per date, per project, per Activity Type, with hours from the deduplicated timeline. *Record* is "New", or for a same-day merge (Step 1) "Adds to <record name> (now <total>h)", where Hours is only what this run adds. The Activity Type is its own column so it can be corrected before anything is written. Notes are what Step 6 will write.
 - When calendar hours exceed record hours because of overlap, put both in the day totals ("Mon 8.0 (9.5 on the calendar)").
 - For a date that already had records, show the reconciliation from Step 1 under the table: booked, supported, proposed.
 - *Week to date* includes this run. Leave *Allocation* blank for a project with none.
@@ -311,9 +313,9 @@ Title format: `<project label>: <what they did>`, using the profile's `label`. D
 
 ## Step 6: Write the time records
 
-Write exactly the rows the user approved in Stage 2: same dates, projects, Activity Types, hours, and notes. Never recompute hours, merge rows, or adjust anything between the approval and the insert. If something has to change (a picklist value is rejected, a record turns out to exist already), stop, show the changed rows and ask again before writing them.
+Write exactly the rows the user approved in Stage 2: same dates, projects, Activity Types, hours, and notes. Never recompute hours, never combine or split approved rows, and never adjust anything between the approval and the insert. A row marked "Adds to" is a same-day merge: its PATCH sets the record's hours to the booked hours plus the approved hours, the total shown in the row. If something has to change (a picklist value is rejected, a record turns out to exist already), stop, show the changed rows and ask again before writing them.
 
-One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row come from the deduplicated timeline in Step 3, not from the summed length of the calendar events. Write each payload to a temporary file and insert one at a time so the org's flows fire the way they do from the UI. Each insert takes several seconds, so keep the user informed: after every few records, print one line such as "12 of <total> written", and finish with "All <total> written." A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined.
+One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row are the hours approved in Stage 2. Write each payload to a temporary file and insert one at a time so the org's flows fire the way they do from the UI. Each insert takes several seconds, so keep the user informed: after every few records, print one line such as "12 of <total> written", and finish with "All <total> written." A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined.
 
 ### Choosing the Activity Type
 

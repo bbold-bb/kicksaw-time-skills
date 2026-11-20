@@ -194,7 +194,7 @@ The quick start begins this for you. Otherwise, say `/log-time` (or just "log my
 2. Say "log my time" with no date. It starts from your last record.
 3. Approve the calendar events. Answer the questions it lists, then let it write your calendar.
 4. Check your calendar, fix anything that looks off, and tell it what changed.
-5. Approve the time records. They're written exactly as shown, and can only be changed on the day they were written.
+5. Approve the time records. They're written exactly as shown, and the skill only changes a record on the day it was written.
 6. Talk through the unaccounted time, and it adds what you tell it.
 7. Your dashboard opens in your browser, with a link to My Hours - Dashboard 2.0 in Salesforce, which shows the same records.
 

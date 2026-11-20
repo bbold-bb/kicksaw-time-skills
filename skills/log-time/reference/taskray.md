@@ -24,7 +24,7 @@ Every query below takes `-o <org alias>` from the profile. `<username>`, `<user_
 SELECT Id, Name, DeliveryTeam__c, flux__Active__c FROM flux__Flux_Resource__c WHERE OwnerId = '<user_id>' AND flux__Active__c = true
 ```
 
-**Timezone** (for `rhythm.timezone`):
+**Timezone** (offered as the second timezone option in setup):
 
 ```
 SELECT TimeZoneSidKey FROM User WHERE Id = '<user_id>'
@@ -90,10 +90,10 @@ SELECT Id, Name, TASKRAY__Date__c, TASKRAY__Project__c, TASKRAY__Project__r.Name
 SELECT Name, TASKRAY__Date__c, TASKRAY__Project__r.Name, Activity_Type__c, TASKRAY__Hours__c, Monthly_Billing_Summary__c, Pay_Period__c, Owner_Role__c FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND CreatedDate = TODAY ORDER BY TASKRAY__Date__c
 ```
 
-**Time dashboard** (Step 8 link; the company's Salesforce dashboard of the same records):
+**Time dashboard** (Step 8 link; the company's Salesforce dashboard of the same records). Personal copies can share the title: prefer the one in the shared *Pilot - Time Logging Dashboards* folder, else the newest.
 
 ```
-SELECT Id FROM Dashboard WHERE Title = 'My Hours - Dashboard 2.0' LIMIT 1
+SELECT Id, FolderName FROM Dashboard WHERE Title = 'My Hours - Dashboard 2.0' ORDER BY LastModifiedDate DESC
 ```
 
 ## Record types on the time record
