@@ -38,6 +38,7 @@ When a skill says to use the option pop-up (`AskUserQuestion`), ask the same que
 ## Layout
 
 ```
+SETUP.md                     guided setup the quick start line points to
 skills/<name>/SKILL.md       the process an agent follows
 skills/<name>/reference/     org queries, picklists, payloads
 skills/<name>/*.py           scripts the skills run (time_report.py)

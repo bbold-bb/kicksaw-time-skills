@@ -72,7 +72,7 @@ The skill folders are `skills/log-time/` and `skills/time-report/`. Each follows
 
 ## Prerequisites
 
-- Salesforce CLI (`sf`) authenticated to the Kicksaw org, with the alias you will name during setup (default `Kicksaw-Prod`)
+- Claude desktop (the Code tab) or Codex, on a Mac or on Windows. The quick start installs the rest: the skills, the Salesforce CLI (`sf`) signed in to the Kicksaw org (default alias `Kicksaw-Prod`), and Python for the report
 - A Google Calendar connector on your Kicksaw account, connected in whichever Claude surface you use
 - Recommended: a Slack connector on the Kicksaw workspace. The skill reads the messages you sent as evidence and never posts. Without it, setup saves Slack as off and the skill says so on every run
 - Optional: Claude Code session transcripts and local git repos, which are the evidence for gap reconstruction. Without them the skill can still fill gaps you describe, but it will not reconstruct anything on its own
@@ -89,9 +89,21 @@ If that is behind the latest in the changelog, update with `npx skills update`. 
 
 ## Install
 
-The two skills install together. `time-report` reads the profile `log-time` creates, so `--skill '*'` in the commands below is deliberate.
+### Quick start
 
-### Claude Code, global
+Paste this line into Claude desktop's Code tab or into Codex:
+
+```
+Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.
+```
+
+It works on a Mac or on Windows. The agent checks what's already set up, asks once before installing anything, installs the skills, the Salesforce CLI and Python, opens your browser to sign in to the Kicksaw org, tells you where to connect Calendar and Slack, and then starts log-time's setup. Paste the same line again any time to update or repair a setup. The steps it follows are in [SETUP.md](SETUP.md).
+
+### For technical users
+
+The commands below install by hand. The two skills install together. `time-report` reads the profile `log-time` creates, so `--skill '*'` in the commands below is deliberate. These need the Salesforce CLI signed in already (`sf org login web -a Kicksaw-Prod`).
+
+#### Claude Code, global
 
 ```
 npx skills add bbold-bb/kicksaw-time-skills --agent claude-code --global --skill '*'
@@ -103,7 +115,7 @@ It installs both skills to `~/.claude/skills/`.
 
 Your profile lives at `~/.claude/kicksaw-time/profile.json`, outside the skill folders, so installing and updating never touch it.
 
-### Claude Code, one project
+#### Claude Code, one project
 
 The same command without `--global` installs into the current project instead:
 
@@ -113,7 +125,7 @@ npx skills add bbold-bb/kicksaw-time-skills --agent claude-code --skill '*'
 
 The profile stays at `~/.claude/kicksaw-time/profile.json`, so there is nothing to gitignore and one profile serves every project.
 
-### Updating
+#### Updating
 
 ```
 npx skills update
@@ -123,7 +135,7 @@ The CLI records what you installed in `skills-lock.json` and updates from the sa
 
 **Do not copy the folders by hand to update.** `cp -R skills/log-time ~/.claude/skills/log-time` onto an existing folder nests it as `~/.claude/skills/log-time/log-time` rather than replacing it. Use `npx skills update`, or `./install.sh`, which replaces the folder cleanly.
 
-### Without npm
+#### Without npm
 
 `install.sh` does the same job with no dependency on npm, and works offline. It lives in this repo rather than inside the skills, so `npx skills add` does not deliver it; clone the repo once:
 
@@ -137,11 +149,11 @@ To pick up a later release, run `git pull` in that clone and `./install.sh` agai
 
 It is also the only path that migrates a profile from 1.1.0 or earlier, where the profile lived inside the skill folder. If you installed before 1.2.0, run it once; it moves the profile to `~/.claude/kicksaw-time/profile.json` and tells you it did.
 
-### Cowork (Claude desktop app)
+#### Cowork (Claude desktop app)
 
 Cowork has no CLI installer, so start by cloning the repo as under **Without npm** above. Zip the `skills/log-time` folder so the folder itself is the root of the archive, then in Cowork open Customize, click the plus button, choose the Skills tab, and upload the zip. Repeat for `skills/time-report`. Run `/log-time` first so the profile exists at `~/.claude/kicksaw-time/profile.json`; the report script finds it there regardless of where Cowork puts the skills. Cowork needs the same `sf` CLI login on the machine to read and write the org; if it cannot reach the CLI, the skill will stop at the proposal and tell you. This path is untested.
 
-### Codex
+#### Codex
 
 Codex reads skills from `~/.agents/skills` (or `.agents/skills` in a project) and repo instructions from `AGENTS.md`. Both install paths support it:
 
@@ -162,21 +174,23 @@ Codex uses the same profile at `~/.claude/kicksaw-time/profile.json`, so if you 
 - **Questions come as numbered lists** instead of click-through pop-ups. Answer with the numbers.
 - **Calendar and Slack** need to be connected in Codex itself, as connectors or MCP servers in `~/.codex/config.toml`. The `sf` CLI login is shared, so the org works as is.
 - **Evidence:** the skill reads Claude Code session transcripts in `~/.claude/projects` if you have them. It does not read Codex's own session history yet, so Codex-only work is rebuilt from git commits, Slack and the calendar.
+- **Windows:** Codex on Windows is untested.
 - **Dashboards:** the local HTML dashboard works. The published claude.ai dashboard is Claude-only; Codex skips that refresh and says so.
 - Depending on your Codex sandbox settings, Codex may ask before running `sf` commands or saving the profile, since both reach outside the project folder.
 
-### Command name collisions
+#### Command name collisions
 
 If you already have `/log-time` or `/time-report` commands in `~/.claude/commands`, remove them first or they will collide on the name. This applies to every install path above.
 
 ## First run
 
-Say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). Last, you pick your work hours and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
+The quick start begins this for you. Otherwise, say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). Last, you pick your work hours and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
 
 ## Files
 
 | File | What it is |
 | --- | --- |
+| `SETUP.md` | The guided setup the quick start line points to. Written for the agent, with a Mac and a Windows form of every step |
 | `AGENTS.md` | Repo instructions for Codex and other coding agents: layout, release rules, what never gets committed |
 | `docs/time-skills-guide.html` | One-page visual guide: how a run works, prerequisites, install for Claude Code and Codex, first-run setup, troubleshooting |
 | `skills/log-time/SKILL.md` | The process. Read this to understand what the skill will and will not do |

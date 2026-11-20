@@ -1,6 +1,6 @@
 ---
 name: time-report
-version: 1.17.0
+version: 1.18.0
 description: Use when a Kicksaw consultant asks how much time they have logged, whether they are on pace for the week or month, or which projects their hours went to. Read-only; pairs with log-time, which writes.
 argument-hint: "[week | last-week | month | last-month | YYYY-MM | YYYY-MM-DD | start end] [--dashboard] (default: week)"
 ---
@@ -22,6 +22,8 @@ python3 <this folder>/time_report.py <period> [--by-day] [--dashboard [PATH]] [-
 python3 <this folder>/time_report.py --export-data [DIR] [--profile PATH]
 ```
 
+Run Python as python3 on a Mac, and as py -3 on Windows (or python if that is the one that prints a Python 3 version).
+
 Accepted periods:
 
 | Argument | Meaning |
@@ -40,7 +42,7 @@ Add `--dashboard` whenever the user asks for a dashboard, a chart, or to see it 
 
 ## Dashboard
 
-`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their browser (`open "<path>"` on macOS) and give them the link.
+`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their browser (`open "<path>"` on a Mac; on Windows, `Start-Process "<path>"` in PowerShell or `start "" "<path>"` in cmd or Git Bash) and give them the link.
 
 The page has two views, toggled at the top:
 

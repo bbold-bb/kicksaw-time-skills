@@ -197,7 +197,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <h2>Before you install</h2>
     </div>
     <div class="prereq">
-      <div class="req"><span class="lvl must">Required</span><b>Salesforce CLI logged in to Kicksaw-Prod</b><span>The <code>sf</code> CLI with an alias for the Kicksaw org. Default alias is <code>Kicksaw-Prod</code>.</span></div>
+      <div class="req"><span class="lvl must">Required</span><b>Claude desktop or Codex</b><span>On a Mac or on Windows. Setup installs the rest: the skills, the Salesforce CLI and its sign-in, and Python.</span></div>
       <div class="req"><span class="lvl must">Required</span><b>Google Calendar connector</b><span>On your Kicksaw account, connected in Claude or Codex. Without it the skill stops.</span></div>
       <div class="req"><span class="lvl must">Required</span><b>A Flux resource in the org</b><span>Time records need one. If setup can't find yours, ask operations to create it.</span></div>
       <div class="req"><span class="lvl rec">Recommended</span><b>Slack connector</b><span>On the Kicksaw workspace. Read-only. Without it, every run notes that Slack is off.</span></div>
@@ -206,13 +206,14 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
 
     <ol class="setup">
       <li><div class="body">
-        <h3>Log in to the Kicksaw org</h3>
-        <p>Skip this if <code>sf org list</code> already shows <code>Kicksaw-Prod</code>.</p>
-        <div class="term"><button class="copy" type="button" data-copy="sf org login web -a Kicksaw-Prod">Copy</button><pre><span class="p">$ </span>sf org login web -a Kicksaw-Prod</pre></div>
+        <h3>Paste the setup line</h3>
+        <p>Paste this into Claude desktop's Code tab or into Codex. It checks what's set up, asks once before installing anything, installs the skills, the Salesforce CLI and Python, opens your browser to sign in to the Kicksaw org, and shows you where to connect Calendar and Slack. You'll see prompts asking you to allow each step; Allow is right for these.</p>
+        <div class="term"><button class="copy" type="button" data-copy="Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.">Copy</button><pre>Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.</pre></div>
+        <div class="note">Paste the same line again any time to update or repair your setup. When it finishes, log-time's setup starts on its own, so you can skip to the next step.</div>
       </div></li>
       <li><div class="body">
-        <h3>Install both skills</h3>
-        <p>They install together because time-report reads the profile log-time creates.</p>
+        <h3>Or install by hand</h3>
+        <p>For technical users. Sign in to the org first with <code>sf org login web -a Kicksaw-Prod</code>. The skills install together because time-report reads the profile log-time creates.</p>
         <div class="term"><button class="copy" type="button" data-copy="npx skills add bbold-bb/kicksaw-time-skills --agent claude-code --global --skill '*'">Copy</button><pre><span class="p">$ </span>npx skills add bbold-bb/kicksaw-time-skills --agent claude-code --global --skill '*'</pre></div>
         <div class="note warn">Keep <code>--agent claude-code</code> exactly as written. <code>claude</code> installs nothing, and leaving it off installs into dozens of agent folders in your home directory.</div>
         <p>No npm? Clone the repo and run the installer instead. It also works offline.</p>
@@ -277,7 +278,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
 </section>
 </main>
 
-<footer><div class="wrap"><span>Kicksaw Time Skills 1.17.0</span></div></footer>
+<footer><div class="wrap"><span>Kicksaw Time Skills 1.18.0</span></div></footer>
 
 <script>
 document.querySelectorAll('.copy').forEach(function (b) {

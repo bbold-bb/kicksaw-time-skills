@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.17.0
+version: 1.18.0
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -25,6 +25,15 @@ The org queries, default picklist values, and the insert payload live in [refere
 
 ## Step 0: Load the profile, and set it up if it is missing
 
+### Preflight
+
+Before anything else, check the tools this skill needs. Silent when everything is fine.
+
+- `sf --version` runs (on Windows, in a session started before it was installed, run it by its full path: `& "C:\Program Files\sf\bin\sf.cmd" --version` in PowerShell).
+- `sf org display user -o <alias> --json` succeeds, where `<alias>` is the profile's `org_alias`, or `Kicksaw-Prod` when there is no profile yet.
+
+If `sf` isn't found, or the org check fails with an authentication error (expired or missing login), stop and offer to fix it: "The Salesforce CLI isn't set up (or your Kicksaw sign-in expired). Want me to fix that now?" On a yes, download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow its *Salesforce CLI* or *Org login* step, whichever failed. Don't print a login command for the user to run. Any other failure (a network error, a query error) is not a setup problem: report it as usual.
+
 Read the profile from `~/.claude/kicksaw-time/profile.json`. If it is not there, look in the legacy locations (`profile.json` beside this file, then `~/.claude/skills/log-time/profile.json`); if it turns up in one of those, move it to the home location, say you did, and carry on. The profile is the user's data and lives outside the skill folder so that installing or updating a skill can never replace it. If it does not exist, or the user asks to reset it, run **Setup** below before anything else. If it exists, run the **org drift check** every time, and the **re-verification** when a trigger fires. Both finish before Step 1.
 
 ### Asking questions
@@ -42,7 +51,7 @@ The less the user types, the better. Every question in setup, drift, and the pro
 
 Setup asks as little as possible. What can be read is read; the user confirms it with a click. Do not write a time record during setup.
 
-1. **Org.** Try `sf org display user -o Kicksaw-Prod --json` without asking. If it resolves, that is the org; `id` and `username` become `user.user_id` and `user.username`. If it fails, run `sf org list --json` and offer the logged-in aliases as options. If there are none, tell them to run `sf org login web -a Kicksaw-Prod` and stop setup until it succeeds. Never ask the user to type their own Id.
+1. **Org.** Try `sf org display user -o Kicksaw-Prod --json` without asking. If it resolves, that is the org; `id` and `username` become `user.user_id` and `user.username`. If it fails, run `sf org list --json` and offer the logged-in aliases as options. If there are none, run the *Org login* step of `SETUP.md` (see *Preflight*) and continue once it succeeds. Never ask the user to type their own Id.
 2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the user's `TimeZoneSidKey` for `rhythm.timezone`, and the Resource Hero resource for `resource_hero.resource_id` (both in the reference). No question.
 3. **Projects, inferred.** Gather candidates from the org, without asking first:
    - their current **Resource Hero assignments** that link to a TaskRay project (the *setup assignments* query in the Resource Hero reference);
@@ -52,8 +61,8 @@ Setup asks as little as possible. What can be read is read; the user confirms it
    **Labels** default to the client's account name, shortened the obvious way ("Northwind Health Partners" becomes "Northwind"). Only ask when two projects would share a label, or a label holds a colon: then offer two suggestions per project, with "Other".
 4. **Internal project.** Run the *internal project* query. One match: use it without asking. Several: one pop-up with the matches, each with its end date. Then resolve its live task the same way. Every user gets an internal project; it is not optional.
    **Allowed values.** Read the allowed picklist values for both record types (*allowed values* in the reference) and save them as `picklists`. Check that the fixed values the insert payload sets (time type, category, non-billable reason) are among them; if one isn't, stop and show the user the allowed values, because every insert would fail.
-5. **Folders.** `transcript_root` is `~/.claude/projects` unless it does not exist. For `repo_roots`, look under the home folder, two levels down, for folders that hold git repos, and offer them as a **multi-select** (`~/Code`, `~/Projects`, and so on), with "Other" for a path. If none are found, save an empty list and move on.
-   Then map folders to projects **without asking**: a repo or transcript folder whose path contains a project's label or client name goes in that project's `directories`. Discover repos as the immediate children of each root plus one level down (anything holding a `.git`). Discover transcript folders as those with a file modified in the last 90 days, and map each back to its real path by testing the path-encoded name against folders on disk; **the entry saved is always that real path**, written with `~` for the home folder, never a bare folder name. Everything else stays unmapped. It is asked about on the first run that finds work in it (*Evidence drift*), so nobody answers questions about folders they no longer use.
+5. **Folders.** `transcript_root` is `~/.claude/projects` unless it does not exist (on Windows that is `%USERPROFILE%\.claude\projects`). For `repo_roots`, look under the home folder on either system, two levels down, for folders that hold git repos, and offer them as a **multi-select** (`~/Code`, `~/Projects`, and so on), with "Other" for a path. If none are found, save an empty list and move on.
+   Then map folders to projects **without asking**: a repo or transcript folder whose path contains a project's label or client name goes in that project's `directories`. Discover repos as the immediate children of each root plus one level down (anything holding a `.git`). Discover transcript folders as those with a file modified in the last 90 days, and map each back to its real path by testing the path-encoded name against folders on disk (see *Directory matching*, drive letters included); **the entry saved is always that real path**, written with `~` for the home folder and forward slashes, never a bare folder name. Everything else stays unmapped. It is asked about on the first run that finds work in it (*Evidence drift*), so nobody answers questions about folders they no longer use.
 6. **Slack.** Confirm the Slack connector by searching for messages from the user in the last 30 days; the search tool reports the acting user's Id, which becomes `slack.user_id`. If the connector is not connected, say so, save `"slack": null`, and continue. Slack is an evidence source, not a gate, and every later run notes that it is missing.
    For each project, find its channels: a channel search across public and private channels using the account name and its obvious short forms, plus the channels the user posted in during the last 90 days whose name matches. **Verify every candidate live** (resolve the Id and read back the name, purpose, and the user's message count). Then one pop-up, one **multi-select** question per project: "Which of these channels are for <Label>?", each option a channel with its purpose and message count. A project with no candidates gets no question. Set `client_facing` to true for a `kicksaw_<client>` or `kicksaw-<client>` channel and false otherwise; the summary in step 8 shows it for correction.
    Every other channel stays unmapped and is asked about on the first run that finds the user posting in it. Group DMs and DMs are never mapped; they are attributed from content at run time (Step 3).
@@ -66,10 +75,17 @@ Setup asks as little as possible. What can be read is read; the user confirms it
 
 ### Directory matching
 
-A `directories` entry is the **working directory's path**, written with `~` for the home folder, as in `~/Desktop/Work/ClientA-Migration`. Paths survive being installed anywhere and on anyone's machine; bare folder names do not.
+A `directories` entry is the **working directory's path**, written with `~` for the home folder and forward slashes, as in `~/Desktop/Work/ClientA-Migration`, on a Mac and on Windows alike. `~` is the user's home folder: `/Users/<name>` on a Mac, `%USERPROFILE%` (usually `C:\Users\<name>`) on Windows. Paths survive being installed anywhere and on anyone's machine; bare folder names do not.
 
-- **A repo** matches when its absolute path equals the entry's, after expanding `~`.
-- **A transcript folder** matches when its name equals the entry's **encoded** form. Claude Code names each folder after the working directory with every character that is not a letter or a digit replaced by a hyphen, so `~/Desktop/Work/Client_A` becomes `-Users-name-Desktop-Work-Client-A`. Derive that name from the path at match time; never store it.
+- **A repo** matches when its absolute path equals the entry's, after expanding `~`. On Windows, compare without regard to case or to which slash is used.
+- **A transcript folder** matches when its name equals the entry's **encoded** form. Claude Code names each folder after the working directory's absolute path, drive letter included, with every character that is not a letter or a digit replaced by a hyphen. Derive that name from the expanded path at match time; never store it.
+
+| Working directory | Transcript folder |
+| --- | --- |
+| `/Users/name/Desktop/Work/Client_A` | `-Users-name-Desktop-Work-Client-A` |
+| `/Users/name/Desktop/Salesforce Projects/Client A` | `-Users-name-Desktop-Salesforce-Projects-Client-A` |
+| `C:\Users\name\Code\Client_A` | `C--Users-name-Code-Client-A` |
+| `C:\Users\First Last\Code\Client A` | `C--Users-First-Last-Code-Client-A` |
 
 A folder that matches nothing is **unmapped**.
 
@@ -266,7 +282,7 @@ Report record names, day totals, and anything still unaccounted for.
 
 ## Step 8: Refresh the dashboards
 
-Run this right after Step 7, on every run that wrote at least one time record. It never waits for the user to ask for a report. time-report is installed beside this skill; its script is `../time-report/time_report.py` from this folder.
+Run this right after Step 7, on every run that wrote at least one time record. It never waits for the user to ask for a report. time-report is installed beside this skill; its script is `../time-report/time_report.py` from this folder. Run Python as python3 on a Mac, and as py -3 on Windows (or python if that is the one that prints a Python 3 version).
 
 - **Local dashboard, inline.** Run `time_report.py week --dashboard` and give the user the `file://` link the script prints. It takes seconds. Do not open the browser; that is time-report's job when they ask.
 - **Published dashboard, in the background.** Only when the profile has `dashboard.artifact_url`. Launch one background agent (the Agent tool) on a small, fast model, passing the model explicitly; the work is mechanical. Brief it with the artifact URL, the user's name, and the *Published dashboard* procedure in time-report's `SKILL.md`, which it follows step by step. Do not wait for it: finish the Step 7 report, and pass on its one-line result when it arrives. If it fails, say so, with what failed; the time records are already written and correct either way.
