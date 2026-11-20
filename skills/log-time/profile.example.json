@@ -11,7 +11,8 @@
     "workday_end": "17:00",
     "timezone": "America/New_York",
     "calendar_account": "first.last@example.com",
-    "uses_google_tasks": false
+    "uses_google_tasks": false,
+    "color_codes": true
   },
   "baseline_hours_per_week": 40,
   "resource_hero": {
