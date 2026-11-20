@@ -61,3 +61,13 @@ def test_log_time_preflight_points_to_setup():
     s = step0(read("skills/log-time/SKILL.md"))
     assert "### Preflight" in s
     assert SETUP_RAW in s
+
+
+PASTED_LINE = ("Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md "
+               "with your shell, read all of it, and follow it to set up the Kicksaw time skills.")
+
+
+def test_pasted_line_is_identical_everywhere():
+    import html
+    assert PASTED_LINE in read("README.md")
+    assert PASTED_LINE in html.unescape(read("docs/time-skills-guide.html"))

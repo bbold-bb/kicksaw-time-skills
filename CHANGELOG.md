@@ -10,6 +10,19 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.18.0 (2026-11-20)
+
+**Guided setup.** Paste one line into Claude desktop's Code tab or Codex and the agent sets everything up, on a Mac or on Windows:
+
+```
+Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.
+```
+
+- **`SETUP.md`** is what the agent follows. It checks what's already set up, asks once before installing anything, installs the skills, the Salesforce CLI and Python from their official sources, opens the browser to sign in to the Kicksaw org, shows where to connect Calendar and Slack, and starts log-time's setup. It coaches you through the app's approval prompts and never asks for a password. Pasting the line again updates or repairs a setup.
+- **Windows support.** time-report finds the Salesforce CLI the way Windows needs, reads its output as UTF-8, prints dates Windows can format, and gives dashboard links that open on both systems. Both skills give the Python and "open the dashboard" commands for each system. log-time matches session history and git folders on Windows paths too.
+- **log-time preflight.** If the Salesforce CLI is missing or your sign-in expired, log-time offers to fix it with the matching `SETUP.md` step instead of printing a command.
+- The README and guide lead with the setup line. `npx` and `install.sh` stay, under *For technical users*.
+
 ## Public repo (2026-11-19, repo only)
 
 No skill changes, so the skill version stays 1.17.0.
