@@ -12,7 +12,7 @@ If it is behind the latest below, update with `npx skills update`. For manual co
 
 ## 1.19.1 (2026-11-20)
 
-- **Existing profiles answer the new questions once.** A profile saved before 1.19.0 is asked about calendar colors, Google Tasks and the timezone on its next run, then never again.
+- **Existing profiles answer the new questions once.** A profile saved before 1.19.0 is asked about calendar colors, Google Tasks and the timezone once, on its next run. The 30-day profile check is unchanged.
 
 ## 1.19.0 (2026-11-20)
 
