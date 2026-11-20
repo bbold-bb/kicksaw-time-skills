@@ -27,6 +27,8 @@ import argparse
 import datetime as dt
 import json
 import os
+import pathlib
+import shutil
 import subprocess
 import sys
 from collections import defaultdict
@@ -43,6 +45,36 @@ PROFILE_LEGACY = [
     os.path.expanduser("~/.claude/skills/log-time/profile.json"),
 ]
 PROFILE_CANDIDATES = [PROFILE_HOME] + PROFILE_LEGACY
+SETUP_URL = "https://github.com/bbold-bb/kicksaw-time-skills#quick-start"
+
+
+def sf_path():
+    """The Salesforce CLI's full path. shutil.which finds sf.cmd on Windows, where a bare "sf" does not run."""
+    path = shutil.which("sf")
+    if not path:
+        sys.exit("The Salesforce CLI (sf) isn't installed or isn't on your PATH. "
+                 "To set it up, follow the quick start: " + SETUP_URL)
+    return path
+
+
+def run_sf(args):
+    """Run sf and read its output as UTF-8, which Windows does not assume."""
+    return subprocess.run([sf_path(), *args], capture_output=True, text=True, encoding="utf-8")
+
+
+def day_label(d, weekday=True):
+    """'Tue Nov 3', or 'Nov 3' without the weekday. Built by hand: Windows strftime has no flag for an unpadded day."""
+    return f"{d:%a %b} {d.day}" if weekday else f"{d:%b} {d.day}"
+
+
+def clock(t):
+    """'3:07 PM', built by hand because Windows strftime can't drop the leading zero."""
+    return f"{t.hour % 12 or 12}:{t:%M %p}"
+
+
+def file_link(path):
+    """A file:// link that opens on both systems, spaces and drive letters included."""
+    return pathlib.Path(path).resolve().as_uri()
 
 
 def load_profile(explicit):
@@ -52,7 +84,7 @@ def load_profile(explicit):
             if not explicit and os.path.normpath(path) != os.path.normpath(PROFILE_HOME):
                 print(f"  note: profile found at {path}.\n"
                       f"        Move it to {PROFILE_HOME} so an update cannot replace it.")
-            with open(path) as fh:
+            with open(path, encoding="utf-8") as fh:
                 return json.load(fh)
     sys.exit(
         "No profile.json found. Run /log-time once to create it, or pass --profile PATH.\n"
@@ -93,10 +125,10 @@ def resolve(tokens):
 
     if token == "week":
         start = today - dt.timedelta(days=today.weekday())
-        return start, start + dt.timedelta(days=6), f"Week of {start:%b %-d}"
+        return start, start + dt.timedelta(days=6), f"Week of {day_label(start, weekday=False)}"
     if token == "last-week":
         start = today - dt.timedelta(days=today.weekday() + 7)
-        return start, start + dt.timedelta(days=6), f"Week of {start:%b %-d}"
+        return start, start + dt.timedelta(days=6), f"Week of {day_label(start, weekday=False)}"
     if token == "month":
         start = today.replace(day=1)
         return start, month_end(start), f"{start:%B %Y}"
@@ -110,7 +142,7 @@ def resolve(tokens):
     except ValueError:
         pass
     day = dt.date.fromisoformat(token)
-    return day, day, f"{day:%a %b %-d}"
+    return day, day, day_label(day)
 
 
 def month_end(first):
@@ -129,10 +161,7 @@ def fetch(profile, start, end):
         f"AND TASKRAY__Date__c >= {start} AND TASKRAY__Date__c <= {end} "
         "ORDER BY TASKRAY__Date__c"
     )
-    out = subprocess.run(
-        ["sf", "data", "query", "-o", org, "-q", soql, "--json"],
-        capture_output=True, text=True,
-    )
+    out = run_sf(["data", "query", "-o", org, "-q", soql, "--json"])
     if out.returncode != 0:
         sys.exit(f"Query failed:\n{out.stderr or out.stdout}")
     return json.loads(out.stdout)["result"]["records"]
@@ -147,10 +176,7 @@ TIME_OFF = "Time off"
 
 def sf_query(profile, soql):
     """Records for a query, or None when it fails."""
-    out = subprocess.run(
-        ["sf", "data", "query", "-o", profile["org_alias"], "-q", soql, "--json"],
-        capture_output=True, text=True,
-    )
+    out = run_sf(["data", "query", "-o", profile["org_alias"], "-q", soql, "--json"])
     if out.returncode != 0:
         return None
     return json.loads(out.stdout)["result"]["records"]
@@ -339,12 +365,13 @@ def write_dashboard(path, profile, labels, records, alloc_days, start, end, labe
         })
     holidays = {d: n for d, n in profile.get("holidays", {}).items()
                 if start.isoformat() <= d <= end.isoformat()}
+    now = dt.datetime.now()
     data = {
         "start": start.isoformat(),
         "end": end.isoformat(),
         "label": label,
         "today": today.isoformat(),
-        "generated": dt.datetime.now().strftime("%a %b %-d, %Y at %-I:%M %p"),
+        "generated": f"{day_label(now)}, {now.year} at {clock(now)}",
         "org": profile["org_alias"],
         "baselinePerDay": profile.get("baseline_hours_per_week", 40) / 5,
         "projects": projects,
@@ -353,14 +380,14 @@ def write_dashboard(path, profile, labels, records, alloc_days, start, end, labe
         "allocDaily": alloc_days,
         "hasAlloc": allocations_enabled(profile),
     }
-    with open(DASHBOARD_TEMPLATE) as fh:
+    with open(DASHBOARD_TEMPLATE, encoding="utf-8") as fh:
         html = fh.read()
     # "</" inside the JSON would end the script block early; escape it.
     payload = json.dumps(data).replace("</", "<\\/")
     html = html.replace("/*__DATA__*/null", payload, 1)
     path = os.path.expanduser(path)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as fh:
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write(html)
     return path
 
@@ -418,7 +445,7 @@ def write_data(out_dir, profile, labels, today):
     os.makedirs(out_dir, exist_ok=True)
     for name, data in [("time-records.json", rows), ("allocation.json", alloc_rows),
                        ("days-off.json", days_off), ("run-info.json", info)]:
-        with open(os.path.join(out_dir, name), "w") as fh:
+        with open(os.path.join(out_dir, name), "w", encoding="utf-8") as fh:
             json.dump(data, fh)
     return out_dir, ignored
 
@@ -460,7 +487,7 @@ def main():
 
     if args.dashboard:
         out = write_dashboard(args.dashboard, profile, labels, records, alloc_days, start, end, label, today)
-        print(f"\nDashboard written: {out}\n  file://{out.replace(' ', '%20')}")
+        print(f"\nDashboard written: {out}\n  {file_link(out)}")
 
     if not records:
         print(f"\n{label}  ({start} to {end})\n\nNo time logged.\n")
@@ -496,7 +523,7 @@ def main():
         sign = "+" if delta >= 0 else ""
         line = f"Expected {expected:g}h through today, {sign}{delta:g}h"
         if hit:
-            names = ", ".join(f"{d:%a %b %-d} {n}" for d, n in hit)
+            names = ", ".join(f"{day_label(d)} {n}" for d, n in hit)
             line += f"   (holidays out of baseline: {names}"
             line += f"; {holiday_hours:g}h logged on them is on top)" if holiday_hours else ")"
         print(line)
@@ -557,7 +584,7 @@ def main():
                 tag = f"  holiday: {holidays[key]}"
             elif cur.weekday() >= 5 and h:
                 tag = "  weekend"
-            print(f"  {cur:%a %b %-d}  {h:>6g}h{tag}" if h else f"  {cur:%a %b %-d}       -{tag}")
+            print(f"  {day_label(cur)}  {h:>6g}h{tag}" if h else f"  {day_label(cur)}       -{tag}")
             cur += dt.timedelta(days=1)
     print()
 
