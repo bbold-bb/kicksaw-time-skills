@@ -21,3 +21,29 @@ def test_dashboard_open_per_os():
     t = read("skills/time-report/SKILL.md")
     assert 'open "<path>"' in t
     assert 'start "" "<path>"' in t
+
+
+def encode(path):
+    """How Claude Code names a session folder: every non letter or digit becomes a hyphen."""
+    return re.sub(r"[^A-Za-z0-9]", "-", path)
+
+
+def table_rows(text, header):
+    """Cells of the markdown table that starts with this header row, backticks stripped."""
+    lines = text.splitlines()
+    start = lines.index(header)
+    rows = []
+    for line in lines[start + 2:]:
+        if not line.startswith("|"):
+            break
+        rows.append([c.strip().strip("`") for c in line.strip("|").split("|")])
+    return rows
+
+
+def test_directory_examples_match_the_encoder():
+    rows = table_rows(read("skills/log-time/SKILL.md"), "| Working directory | Transcript folder |")
+    assert len(rows) == 4
+    assert any(r[0].startswith("C:\\") for r in rows)
+    assert any(" " in r[0] for r in rows)
+    for path, folder in rows:
+        assert encode(path) == folder, path
