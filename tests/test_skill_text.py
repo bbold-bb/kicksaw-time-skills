@@ -71,3 +71,11 @@ def test_pasted_line_is_identical_everywhere():
     import html
     assert PASTED_LINE in read("README.md")
     assert PASTED_LINE in html.unescape(read("docs/time-skills-guide.html"))
+
+
+def test_dashboard_opens_in_powershell():
+    assert 'Start-Process "<path>"' in read("skills/time-report/SKILL.md")
+
+
+def test_preflight_fallback_is_runnable_in_powershell():
+    assert '& "C:\\Program Files\\sf\\bin\\sf.cmd"' in step0(read("skills/log-time/SKILL.md"))

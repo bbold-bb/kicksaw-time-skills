@@ -44,37 +44,54 @@ If nothing is missing, skip to step 7.
 
 **Check.** Both `<skills folder>/log-time/SKILL.md` and `<skills folder>/time-report/SKILL.md` exist, and the `version:` line of each matches the one in `https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/<branch>/skills/log-time/SKILL.md`.
 
-**Fix.** Download the repo archive for the same branch into a new, empty temporary folder, extract it there, find the single top-level folder it created (don't guess its name), and replace each skill folder whole: remove it, then copy the new one in, so it can never end up nested inside the old one.
+**Fix.** Download the repo archive for the same branch into a new, empty temporary folder, extract it there, find the single top-level folder it created (don't guess its name), and replace each skill folder whole: remove it, then copy the new one in, so it can never end up nested inside the old one. Each block below stops before removing anything if the download or extract failed, so a failed update never deletes a working install. Run each block as one command: your shell doesn't keep variables between commands.
 
-macOS (`D` is `~/.claude/skills` for Claude Code, `~/.agents/skills` for Codex):
+Replace `<skills folder>` with exactly one of these, for the agent you are:
 
-```
-T=$(mktemp -d)
-curl -fsSL -o "$T/skills.zip" "https://github.com/bbold-bb/kicksaw-time-skills/archive/refs/heads/<branch>.zip"
-unzip -q "$T/skills.zip" -d "$T/x"
-SRC=$(find "$T/x" -mindepth 1 -maxdepth 1 -type d)
-D=~/.claude/skills
-mkdir -p "$D"
-for s in log-time time-report; do rm -rf "${D:?}/${s:?}"; cp -R "$SRC/skills/$s" "$D/$s"; done
-```
+| Agent | macOS | Windows (PowerShell) |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills` | `$HOME\.claude\skills` |
+| Codex | `~/.agents/skills` | `$HOME\.agents\skills` |
 
-Windows (PowerShell) (`$D` is `$HOME\.claude\skills` for Claude Code, `$HOME\.agents\skills` for Codex):
+macOS:
 
 ```
+T=$(mktemp -d) &&
+curl -fsSL -o "$T/skills.zip" "https://github.com/bbold-bb/kicksaw-time-skills/archive/refs/heads/<branch>.zip" &&
+unzip -q "$T/skills.zip" -d "$T/x" &&
+SRC=$(find "$T/x" -mindepth 1 -maxdepth 1 -type d) &&
+[ -f "$SRC/skills/log-time/SKILL.md" ] && [ -f "$SRC/skills/time-report/SKILL.md" ] &&
+D=<skills folder> && mkdir -p "$D" &&
+for s in log-time time-report; do rm -rf "${D:?}/${s:?}" && cp -R "$SRC/skills/$s" "$D/$s"; done
+rm -rf "${T:?}"
+```
+
+Windows (PowerShell):
+
+```
+$ProgressPreference = 'SilentlyContinue'
+$ErrorActionPreference = 'Stop'
 $T = Join-Path $env:TEMP ("kts-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Path $T | Out-Null
-Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/bbold-bb/kicksaw-time-skills/archive/refs/heads/<branch>.zip" -OutFile "$T\skills.zip"
-Expand-Archive -Path "$T\skills.zip" -DestinationPath "$T\x"
-$Src = (Get-ChildItem "$T\x" -Directory | Select-Object -First 1).FullName
-$D = Join-Path $HOME ".claude\skills"
-New-Item -ItemType Directory -Force -Path $D | Out-Null
-foreach ($s in "log-time", "time-report") {
-  Remove-Item -Recurse -Force (Join-Path $D $s) -ErrorAction SilentlyContinue
-  Copy-Item -Recurse (Join-Path $Src "skills\$s") (Join-Path $D $s)
+try {
+  Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/bbold-bb/kicksaw-time-skills/archive/refs/heads/<branch>.zip" -OutFile "$T\skills.zip"
+  Expand-Archive -Path "$T\skills.zip" -DestinationPath "$T\x"
+  $Src = (Get-ChildItem "$T\x" -Directory | Select-Object -First 1).FullName
+  foreach ($s in "log-time", "time-report") {
+    if (-not (Test-Path (Join-Path $Src "skills\$s\SKILL.md"))) { throw "The download didn't contain $s." }
+  }
+  $D = "<skills folder>"
+  New-Item -ItemType Directory -Force -Path $D | Out-Null
+  foreach ($s in "log-time", "time-report") {
+    Remove-Item -Recurse -Force (Join-Path $D $s) -ErrorAction SilentlyContinue
+    Copy-Item -Recurse (Join-Path $Src "skills\$s") (Join-Path $D $s)
+  }
+} finally {
+  Remove-Item -Recurse -Force $T -ErrorAction SilentlyContinue
 }
 ```
 
-Check again, then delete the temporary folder.
+Check again.
 
 ## 4. Salesforce CLI
 
@@ -91,15 +108,21 @@ open "$TMPDIR/sf.pkg"
 
 Use `sf-x64.pkg` instead on an Intel Mac. Wait until the user says the installer finished.
 
-Windows (PowerShell): say "The Salesforce installer will open. Click Yes when Windows asks whether it can make changes, then click through it." Then:
+Windows (PowerShell): say "The Salesforce installer will open. Click Yes when Windows asks whether it can make changes, then click through it." Then run this with a 10-minute timeout, since it waits for the installer to close:
 
 ```
+$ProgressPreference = 'SilentlyContinue'
 $Exe = Join-Path $env:TEMP "sf-x64.exe"
 Invoke-WebRequest -UseBasicParsing -Uri "https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-x64.exe" -OutFile $Exe
 Start-Process -FilePath $Exe -Wait
 ```
 
-**Check again.** Your shell may have read its PATH before the install, so `sf` can still be "not found" even though it installed. If so, use the full path for the rest of this session: `/usr/local/bin/sf` on a Mac, `C:\Program Files\sf\bin\sf.cmd` on Windows. Tell the user a new session will find it normally.
+**Check again.** Your shell may have read its PATH before the install, so `sf` can still be "not found" even though it installed. If so, use the full path for the rest of this session:
+
+- macOS: `/usr/local/bin/sf --version`
+- Windows (PowerShell): `& "C:\Program Files\sf\bin\sf.cmd" --version`
+
+The time report finds those paths on its own. On a Mac, a new session finds `sf` normally. On Windows, tell the user: "When we're done, quit Claude and open it again, so it picks up the new install. Starting a new session isn't enough."
 
 ## 5. Python
 
@@ -131,7 +154,10 @@ winget install --id Python.Python.3.14 -e --scope user --accept-package-agreemen
 
 If `winget` isn't available, download `python-<version>-amd64.exe` from `https://www.python.org/downloads/windows/`, run it, and tell the user to tick "Add python.exe to PATH" before clicking Install.
 
-**Check again.** If the shell can't find it yet, use the full path for this session (`/usr/local/bin/python3` on a Mac; `$env:LOCALAPPDATA\Programs\Python\Python314\python.exe` on Windows).
+**Check again.** If the shell can't find it yet, use the full path for this session:
+
+- macOS: `/usr/local/bin/python3 --version`
+- Windows (PowerShell): `& "$env:LOCALAPPDATA\Programs\Python\Python314\python.exe" --version`
 
 ## 6. Org login
 
@@ -141,15 +167,15 @@ If `winget` isn't available, download `python-<version>-amd64.exe` from `https:/
 
 - macOS and Windows (PowerShell) alike: `sf org display user -o <alias> --json` succeeds.
 
-If it fails, run `sf org list --json`. If other orgs are signed in, offer them as options ("Is one of these your Kicksaw login?"), with "Sign in fresh" as the first option. Use the one they pick as the alias.
+If it fails and there is no profile yet, run `sf org list --json`. If other orgs are signed in, offer them as options ("Is one of these your Kicksaw login?"), with "Sign in fresh" as the first option. Use the one they pick as `<alias>` for the rest of this step; log-time's setup saves it to the profile. With a profile, keep its `org_alias`.
 
-**Fix.** Say "Your browser will open to the Salesforce sign-in. Sign in with your Kicksaw Salesforce login, then come back here." Then run (the same command on macOS and Windows (PowerShell)):
+**Fix.** Say "Your browser will open to the Salesforce sign-in. Sign in with your Kicksaw Salesforce login, then come back here." Then run this with a 10-minute timeout, since it waits until the browser sign-in finishes (the same command on macOS and Windows (PowerShell); use the full `sf` path from step 4 if needed):
 
 ```
-sf org login web -a Kicksaw-Prod --instance-url https://login.salesforce.com
+sf org login web -a <alias> --instance-url https://login.salesforce.com
 ```
 
-It waits until the browser sign-in finishes, so give it up to ten minutes. **Check again** with `sf org display user -o Kicksaw-Prod --json`.
+**Check again** with `sf org display user -o <alias> --json`.
 
 ## 7. Connectors
 

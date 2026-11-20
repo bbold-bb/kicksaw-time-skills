@@ -42,7 +42,7 @@ Add `--dashboard` whenever the user asks for a dashboard, a chart, or to see it 
 
 ## Dashboard
 
-`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their browser (`open "<path>"` on a Mac, `start "" "<path>"` on Windows) and give them the link.
+`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their browser (`open "<path>"` on a Mac; on Windows, `Start-Process "<path>"` in PowerShell or `start "" "<path>"` in cmd or Git Bash) and give them the link.
 
 The page has two views, toggled at the top:
 

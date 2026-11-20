@@ -29,7 +29,7 @@ The org queries, default picklist values, and the insert payload live in [refere
 
 Before anything else, check the tools this skill needs. Silent when everything is fine.
 
-- `sf --version` runs (on Windows, `sf` may need its full path, `C:\Program Files\sf\bin\sf.cmd`, in a session started before it was installed).
+- `sf --version` runs (on Windows, in a session started before it was installed, run it by its full path: `& "C:\Program Files\sf\bin\sf.cmd" --version` in PowerShell).
 - `sf org display user -o <alias> --json` succeeds, where `<alias>` is the profile's `org_alias`, or `Kicksaw-Prod` when there is no profile yet.
 
 If `sf` isn't found, or the org check fails with an authentication error (expired or missing login), stop and offer to fix it: "The Salesforce CLI isn't set up (or your Kicksaw sign-in expired). Want me to fix that now?" On a yes, download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow its *Salesforce CLI* or *Org login* step, whichever failed. Don't print a login command for the user to run. Any other failure (a network error, a query error) is not a setup problem: report it as usual.

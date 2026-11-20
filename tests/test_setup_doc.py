@@ -77,3 +77,47 @@ def test_never_touches_profile_folder_except_alias():
 
 def test_no_em_dashes():
     assert "—" not in text()
+
+
+def code_blocks(s):
+    return re.findall(r"```\n(.*?)```", s, re.S)
+
+
+def test_login_uses_the_chosen_alias():
+    s = section("## 6. Org login")
+    assert "sf org login web -a <alias>" in s
+    assert "sf org login web -a Kicksaw-Prod" not in s
+
+
+def test_download_failure_keeps_the_old_skills():
+    blocks = code_blocks(section("## 3. Skills"))
+    mac, win = blocks[0], blocks[1]
+    assert mac.index('[ -f "$SRC/skills/log-time/SKILL.md" ]') < mac.index("rm -rf")
+    assert win.index("throw") < win.index("Remove-Item -Recurse -Force (Join-Path")
+    assert 'rm -rf "${T:?}"' in mac and "Remove-Item -Recurse -Force $T" in win
+
+
+def test_skills_folder_is_a_placeholder():
+    for b in code_blocks(section("## 3. Skills")):
+        assert "<skills folder>" in b
+        assert ".claude/skills" not in b and ".claude\\skills" not in b
+
+
+def test_full_paths_are_runnable_in_powershell():
+    assert '& "C:\\Program Files\\sf\\bin\\sf.cmd" --version' in section("## 4. Salesforce CLI")
+    assert '& "$env:LOCALAPPDATA\\Programs\\Python\\Python314\\python.exe" --version' in section("## 5. Python")
+
+
+def test_windows_downloads_hide_the_progress_bar():
+    for h in ("## 3. Skills", "## 4. Salesforce CLI"):
+        win = [b for b in code_blocks(section(h)) if "Invoke-WebRequest" in b]
+        assert win and all(b.startswith("$ProgressPreference = 'SilentlyContinue'") for b in win), h
+
+
+def test_long_steps_get_a_long_timeout():
+    for h in ("## 4. Salesforce CLI", "## 6. Org login"):
+        assert "10-minute timeout" in section(h), h
+
+
+def test_windows_says_to_reopen_claude():
+    assert "quit Claude and open it again" in section("## 4. Salesforce CLI")
