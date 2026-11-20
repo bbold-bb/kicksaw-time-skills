@@ -22,7 +22,7 @@ def section(text, start, end):
 
 def test_version_is_1_19_0():
     for p in (LOG, REPORT):
-        assert re.search(r"^version: 1\.19\.[01]$", read(p), re.M), p
+        assert re.search(r"^version: 1\.19\.\d+$", read(p), re.M), p
     assert "## 1.19.0 (" in read("CHANGELOG.md")
 
 
@@ -91,7 +91,7 @@ def test_setup_asks_for_timezone_from_the_computer():
 def test_setup_asks_about_google_tasks_and_names_the_limit():
     s = section(read(LOG), "### Setup (first run)", "### Directory matching")
     assert "Google Tasks" in s
-    assert "can't see Google Tasks" in s
+    assert "Google Tasks" in s
 
 
 def test_setup_asks_about_color_coding():
@@ -210,7 +210,7 @@ def test_existing_profiles_get_the_new_questions_once():
     assert "asked once" in s
     i = log.index("If it exists, run the **org drift check**")
     assert "new questions" in log[i:i + 400]
-    assert re.search(r"^version: 1\.19\.1$", log, re.M)
+    assert re.search(r"^version: 1\.19\.\d+$", log, re.M)
 
 
 # Guide tabs: Get started and What's new
@@ -228,3 +228,22 @@ def test_guide_has_two_tabs_and_whats_new():
 
 def test_readme_points_the_team_to_whats_new():
     assert "What's new" in read("README.md")
+
+
+# 1.19.2: color for projects added later, softer Tasks wording
+
+def test_new_project_is_asked_for_an_unused_color():
+    log = read(LOG)
+    s = section(log, "### Color for a new project", "### Directory matching")
+    assert "rhythm.color_codes" in s
+    assert "not already used by another project" in s
+    for where in ("Re-verification", "Evidence drift"):
+        assert "Color for a new project" in section(log, f"### {where}", "\n### " if where == "Evidence drift" else "## Step 1"), where
+    assert "color_codes" in json.loads(read("skills/log-time/profile.example.json"))["rhythm"]
+
+
+def test_tasks_are_not_described_as_unreadable():
+    log = read(LOG)
+    assert "can't see Google Tasks" not in log
+    assert "Were any of these a Google Task you worked on?" in log
+    assert "connector can't see" not in html.unescape(read("docs/time-skills-guide.html"))

@@ -10,6 +10,11 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.19.2 (2026-11-20)
+
+- **A color for each new project.** When someone who color-codes their calendar adds a project later (at the 30-day check, from evidence drift, or on request), log-time asks its color, offering colors no other project uses. Saved as `rhythm.color_codes` and the project's `color_id`.
+- **Google Tasks wording.** Setup no longer tells people Tasks can't be read. A Tasks user is asked, when unaccounted time is listed, whether any of it was a task.
+
 ## 1.19.1 (2026-11-20)
 
 - **Existing profiles answer the new questions once.** A profile saved before 1.19.0 is asked about calendar colors, Google Tasks and the timezone once, on its next run. The 30-day profile check is unchanged.
