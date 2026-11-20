@@ -100,6 +100,7 @@ ol.setup .body { display: grid; gap: 10px; min-width: 0; }
 .qa { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 16px; padding: 0; margin: 0; list-style: none; }
 .qa li { font-size: .95rem; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .qa li b { font-family: var(--head); font-weight: 600; color: var(--navy); }
+.qa.seq { grid-template-columns: minmax(0,1fr); list-style: decimal; padding-left: 1.4em; }
 
 .say { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
 .say div { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
@@ -246,7 +247,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       </div></li>
       <li><div class="body">
         <h3>How a run goes</h3>
-        <ol class="qa">
+        <ol class="qa seq">
           <li><b>Fill your calendar gaps first.</b> Add anything it can't see, like a phone call or a task, so the run finds it</li>
           <li><b>Say "log my time".</b> Leave the date off; it starts from your last record</li>
           <li><b>Approve the calendar events.</b> Answer the questions it lists, then let it write your calendar</li>
