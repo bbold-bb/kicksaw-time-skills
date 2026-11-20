@@ -47,3 +47,17 @@ def test_directory_examples_match_the_encoder():
     assert any(" " in r[0] for r in rows)
     for path, folder in rows:
         assert encode(path) == folder, path
+
+
+SETUP_RAW = "https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md"
+
+
+def step0(text):
+    start = text.index("## Step 0:")
+    return text[start:text.index("\n## Step 1:", start)]
+
+
+def test_log_time_preflight_points_to_setup():
+    s = step0(read("skills/log-time/SKILL.md"))
+    assert "### Preflight" in s
+    assert SETUP_RAW in s
