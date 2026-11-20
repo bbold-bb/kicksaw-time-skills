@@ -100,6 +100,7 @@ ol.setup .body { display: grid; gap: 10px; min-width: 0; }
 .qa { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 16px; padding: 0; margin: 0; list-style: none; }
 .qa li { font-size: .95rem; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .qa li b { font-family: var(--head); font-weight: 600; color: var(--navy); }
+.qa.seq { grid-template-columns: minmax(0,1fr); list-style: decimal; padding-left: 1.4em; }
 
 .say { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
 .say div { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
@@ -168,8 +169,9 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
           <div class="step"><span class="n">2</span><div><b>Find the start date</b><span>The last day before today with a time record</span></div></div>
           <div class="step"><span class="n">3</span><div><b>Rebuild each day</b><span>Calendar first, then evidence fills the gaps. A 45-minute silence ends a block</span></div></div>
           <div class="step"><span class="n">4</span><div><b>Count each minute once</b><span>Overlaps are allowed on the calendar, never in the hours</span></div></div>
-          <div class="step gate"><span class="n">5</span><div><b>You review the proposal</b><span>Events, records, unclear calls and unaccounted gaps. Nothing is written before your yes</span></div></div>
-          <div class="step"><span class="n">6</span><div><b>Write and verify</b><span>Calendar events, then one time record per day, project and activity type</span></div></div>
+          <div class="step gate"><span class="n">5</span><div><b>You approve the calendar events</b><span>Each day's events, unclear calls and unaccounted gaps. Your calendar is written once you approve</span></div></div>
+          <div class="step gate"><span class="n">6</span><div><b>You check your calendar, then approve the records</b><span>One time record per day, project and activity type, written exactly as shown</span></div></div>
+          <div class="step"><span class="n">7</span><div><b>Write and verify</b><span>Shows progress as records go in, then checks them in the org</span></div></div>
         </div>
       </div>
       <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
@@ -177,7 +179,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
         <div class="lane-title">Writes</div>
         <div class="out"><b>Calendar events</b><span>Fill the gaps, titled "Label: what you did"</span></div>
         <div class="out"><b>TaskRay time records</b><span>In Kicksaw-Prod, on the right project and live task</span></div>
-        <div class="out"><b>Time dashboard</b><span>log-time refreshes it after every run that wrote a record</span></div>
+        <div class="out"><b>Time dashboard</b><span>Opens in your browser after every run that wrote a record, with a link to My Hours - Dashboard 2.0 in Salesforce</span></div>
       </div>
     </div>
 
@@ -197,7 +199,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <h2>Before you install</h2>
     </div>
     <div class="prereq">
-      <div class="req"><span class="lvl must">Required</span><b>Claude desktop or Codex</b><span>On a Mac or on Windows. Setup installs the rest: the skills, the Salesforce CLI and its sign-in, and Python.</span></div>
+      <div class="req"><span class="lvl must">Required</span><b>Claude desktop or Codex</b><span>On a Mac or on Windows. In Claude desktop, use the Code tab: the <code>&lt;/&gt;</code> icon at the top, next to Chat. Setup installs the rest: the skills, the Salesforce CLI and its sign-in, and Python.</span></div>
       <div class="req"><span class="lvl must">Required</span><b>Google Calendar connector</b><span>On your Kicksaw account, connected in Claude or Codex. Without it the skill stops.</span></div>
       <div class="req"><span class="lvl must">Required</span><b>A Flux resource in the org</b><span>Time records need one. If setup can't find yours, ask operations to create it.</span></div>
       <div class="req"><span class="lvl rec">Recommended</span><b>Slack connector</b><span>On the Kicksaw workspace. Read-only. Without it, every run notes that Slack is off.</span></div>
@@ -207,7 +209,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
     <ol class="setup">
       <li><div class="body">
         <h3>Paste the setup line</h3>
-        <p>Paste this into Claude desktop's Code tab or into Codex. It checks what's set up, asks once before installing anything, installs the skills, the Salesforce CLI and Python, opens your browser to sign in to the Kicksaw org, and shows you where to connect Calendar and Slack. You'll see prompts asking you to allow each step; Allow is right for these.</p>
+        <p>Paste this into the Code tab in Claude desktop, or into Codex. It checks what's set up, asks once before installing anything, installs the skills, the Salesforce CLI and Python, opens your browser to sign in to the Kicksaw org, and shows you where to connect Calendar and Slack. You'll see prompts asking you to allow each step; Allow is right for these.</p>
         <div class="term"><button class="copy" type="button" data-copy="Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.">Copy</button><pre>Download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it to set up the Kicksaw time skills.</pre></div>
         <div class="note">Paste the same line again any time to update or repair your setup. When it finishes, log-time's setup starts on its own, so you can skip to the next step.</div>
       </div></li>
@@ -231,16 +233,29 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
         <p>In Claude Code, type <code>/log-time</code>. In Codex, type <code>$log-time</code>. Or just say "log my time" in either. The first run is setup only, and it's mostly clicks: it reads what it can from the org and your connectors, and you confirm. No time record is written.</p>
         <ul class="qa">
           <li><b>Org.</b> Uses Kicksaw-Prod if you're logged in, or offers your logged-in aliases</li>
-          <li><b>Flux resource and timezone.</b> Read from Salesforce</li>
+          <li><b>Flux resource.</b> Read from Salesforce</li>
           <li><b>Projects.</b> From your Resource Hero assignments and last 90 days of logging. Tick the ones to log against</li>
           <li><b>Internal project.</b> Added for everyone, not asked</li>
           <li><b>Labels.</b> Default to the client name. Asked only when two would clash</li>
           <li><b>Repo folders.</b> Tick the folders that hold your repos. They're matched to projects by name</li>
           <li><b>Slack channels.</b> Tick the channels that match each project</li>
-          <li><b>Work hours, then save.</b> One click, 9 to 5 by default, then a summary to save or change</li>
+          <li><b>Colors and Tasks.</b> Whether you color-code projects on your calendar (new events then match), and whether you track work as Google Tasks, which the calendar connector can't see</li>
+          <li><b>Work hours, timezone, then save.</b> 9 to 5 and your computer's timezone by default, then a summary to save or change</li>
         </ul>
         <p>Folders and channels it can't place are asked about later, on the first run that finds work in them.</p>
         <p>The profile is saved at <code>~/.claude/kicksaw-time/profile.json</code>, outside the skill folders, so updates never touch it.</p>
+      </div></li>
+      <li><div class="body">
+        <h3>How a run goes</h3>
+        <ol class="qa seq">
+          <li><b>Fill your calendar gaps first.</b> Add anything it can't see, like a phone call or a task, so the run finds it</li>
+          <li><b>Say "log my time".</b> Leave the date off; it starts from your last record</li>
+          <li><b>Approve the calendar events.</b> Answer the questions it lists, then let it write your calendar</li>
+          <li><b>Check your calendar.</b> Move or fix anything that looks off, and tell it what changed</li>
+          <li><b>Approve the time records.</b> They're written exactly as shown. The skill only changes a record on the day it was written</li>
+          <li><b>Talk through unaccounted time.</b> Tell it what you were doing in each gap, and it adds the time</li>
+          <li><b>Check the dashboards.</b> Yours opens in your browser. My Hours - Dashboard 2.0 in Salesforce shows the same records</li>
+        </ol>
       </div></li>
       <li><div class="body">
         <h3>Use it day to day</h3>
@@ -278,7 +293,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
 </section>
 </main>
 
-<footer><div class="wrap"><span>Kicksaw Time Skills 1.18.0</span></div></footer>
+<footer><div class="wrap"><span>Kicksaw Time Skills 1.19.0</span></div></footer>
 
 <script>
 document.querySelectorAll('.copy').forEach(function (b) {

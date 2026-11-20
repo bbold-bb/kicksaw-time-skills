@@ -1,6 +1,6 @@
 ---
 name: time-report
-version: 1.18.0
+version: 1.19.0
 description: Use when a Kicksaw consultant asks how much time they have logged, whether they are on pace for the week or month, or which projects their hours went to. Read-only; pairs with log-time, which writes.
 argument-hint: "[week | last-week | month | last-month | YYYY-MM | YYYY-MM-DD | start end] [--dashboard] (default: week)"
 ---
@@ -42,7 +42,7 @@ Add `--dashboard` whenever the user asks for a dashboard, a chart, or to see it 
 
 ## Dashboard
 
-`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their browser (`open "<path>"` on a Mac; on Windows, `Start-Process "<path>"` in PowerShell or `start "" "<path>"` in cmd or Git Bash) and give them the link.
+`--dashboard` also writes a self-contained HTML page for the period, to `~/.claude/kicksaw-time/time-dashboard.html` unless a path follows the flag. The script prints the path and a `file://` link. Open it for the user in their system browser, not a browser inside the agent app (`open "<path>"` on a Mac; on Windows, `Start-Process "<path>"` in PowerShell or `start "" "<path>"` in cmd or Git Bash), and give them the link. Also give the link to the company's Salesforce view of the same records, *My Hours - Dashboard 2.0*, found with the *time dashboard* query in log-time's `reference/taskray.md` and built as `<instanceUrl>/lightning/r/Dashboard/<Id>/view` (the `instanceUrl` comes from `sf org display -o <alias> --json`); leave it out if the query finds nothing.
 
 The page has two views, toggled at the top:
 
