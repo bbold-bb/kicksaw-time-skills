@@ -81,6 +81,8 @@ The skill folders are `skills/log-time/` and `skills/time-report/`. Each follows
 
 ## Version
 
+For the team, the *What's new* tab of the shared guide lists recent changes in plain words, including which ones came from team feedback. This repo's [CHANGELOG.md](CHANGELOG.md) has the full detail.
+
 Both skills share one version, recorded in the `version:` line of each `SKILL.md` and listed in [CHANGELOG.md](CHANGELOG.md). Once you have installed, read the version you are on with:
 
 ```
