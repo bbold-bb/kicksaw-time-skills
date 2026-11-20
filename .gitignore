@@ -1,0 +1,16 @@
+# Generated at setup; contains your org IDs and personal record IDs
+profile.json
+**/profile.json
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Bevel LSP Interface (editor extension), writes a local port number
+.bevel/
+
+# Brainstorming mockups from the visual companion
+.superpowers/

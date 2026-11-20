@@ -1,0 +1,90 @@
+{
+  "org_alias": "Kicksaw-Prod",
+  "user": {
+    "username": "first.last@example.com",
+    "user_id": "<your user Id>",
+    "flux_resource_id": "<your Flux resource Id>",
+    "delivery_team": "Your Delivery Team"
+  },
+  "rhythm": {
+    "workday_start": "08:30",
+    "workday_end": "17:00",
+    "timezone": "America/New_York",
+    "calendar_account": "first.last@example.com"
+  },
+  "baseline_hours_per_week": 40,
+  "resource_hero": {
+    "resource_id": "<your Resource Hero resource Id>",
+    "use_for_allocations": true,
+    "actuals_source": "taskray",
+    "assignment_labels": { "<assignment Id>": "ClientA Phase 2" }
+  },
+  "dashboard": {
+    "since": "2026-09-01",
+    "artifact_url": "https://claude.ai/artifact/..."
+  },
+  "holidays": {
+    "2026-09-07": "Labor Day",
+    "2026-11-26": "Thanksgiving"
+  },
+  "projects": [
+    {
+      "label": "ClientA",
+      "name": "ClientA - Engagement Name (Phase 1)",
+      "project_id": "<project Id>",
+      "task_id": "<task Id>",
+      "record_type": "Client Work",
+      "directories": [
+        "~/Desktop/Work/ClientA-Migration",
+        "~/Code/clienta-tooling"
+      ],
+      "slack_channels": [
+        { "id": "<channel Id>", "name": "internal_clienta", "client_facing": false },
+        { "id": "<channel Id>", "name": "kicksaw_clienta", "client_facing": true }
+      ],
+      "rh_assignment_id": "<assignment Id>"
+    }
+  ],
+  "internal": {
+    "name": "Your Company - Internal Time",
+    "project_id": "<project Id>",
+    "task_id": "<task Id>",
+    "record_type": "Internal Work",
+    "slack_channels": [
+      { "id": "<channel Id>", "name": "example-internal", "client_facing": false }
+    ]
+  },
+  "picklists": {
+    "Client Work": {
+      "Activity_Type__c": ["Coding and Configuration", "Communications", "Documentation", "Meeting", "Travel"],
+      "TASKRAY__trTimeType__c": ["Standard"],
+      "Non_Billable_Reason__c": ["Investment"]
+    },
+    "Internal Work": {
+      "Activity_Type__c": ["Admin and Overhead", "Learning and Development", "PTO"],
+      "TASKRAY__trTimeType__c": ["Internal"],
+      "Category__c": ["Internal"],
+      "Non_Billable_Reason__c": ["Not Applicable"]
+    }
+  },
+  "slack": {
+    "user_id": "<your Slack user Id>",
+    "exclude_channels": [
+      { "id": "<channel Id>", "name": "random" }
+    ]
+  },
+  "transcript_root": "~/.claude/projects",
+  "repo_roots": [
+    "~/Projects",
+    "~/Code"
+  ],
+  "shared_directories": [
+    "~/Code/shared-tooling",
+    "~"
+  ],
+  "exclude_directories": [
+    "~/Code/personal-site"
+  ],
+  "conventions": [],
+  "verified_on": "YYYY-MM-DD"
+}

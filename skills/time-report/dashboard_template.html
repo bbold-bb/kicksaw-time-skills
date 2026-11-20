@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time Dashboard</title>
+<!-- Built by time_report.py --dashboard. The data block near the bottom is filled in at build time. -->
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+  --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --up: #006300; --down: #b42f2f; --track: #e9f1fc; --weekend: rgba(11,11,11,0.03);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --seq-0: #f3f2ee; --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface-1: #1a1a19;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --up: #0ca30c; --down: #e66767; --track: #1d2a3b; --weekend: rgba(255,255,255,0.035);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --seq-0: #232322; --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf; --seq-5: #2a78d6; --seq-6: #5598e7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface-1: #1a1a19;
+  --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+  --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+  --up: #0ca30c; --down: #e66767; --track: #1d2a3b; --weekend: rgba(255,255,255,0.035);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --seq-0: #232322; --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf; --seq-5: #2a78d6; --seq-6: #5598e7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--text-primary); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+h1 { font-size: 22px; font-weight: 600; margin: 0; }
+.sub { color: var(--text-secondary); margin: 2px 0 0; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-1); }
+.seg button { border: 0; background: transparent; color: var(--text-secondary); padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--track); color: var(--text-primary); font-weight: 600; }
+.ghost { border: 1px solid var(--border); background: var(--surface-1); color: var(--text-secondary); border-radius: 8px; padding: 6px 10px; font: inherit; cursor: pointer; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+.card h2 { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+.card .note { color: var(--text-muted); font-size: 12px; margin: 0 0 12px; }
+.span-12 { grid-column: span 12; } .span-7 { grid-column: span 7; } .span-5 { grid-column: span 5; } .span-6 { grid-column: span 6; } .span-3 { grid-column: span 3; }
+@media (max-width: 860px) { .span-7, .span-5, .span-6 { grid-column: span 12; } .span-3 { grid-column: span 6; } }
+[hidden] { display: none !important; }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 600; margin-top: 4px; }
+.tile.hero .value { font-size: 48px; line-height: 1.05; }
+.tile .delta { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.up { color: var(--up); font-weight: 600; } .down { color: var(--down); font-weight: 600; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.key-tick { width: 14px; height: 2px; background: var(--text-primary); display: inline-block; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: inherit; }
+.axis { fill: var(--text-muted); font-size: 11px; }
+.alloc-row { margin: 14px 0 6px; }
+.alloc-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.alloc-head .name { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.alloc-head .num { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.meter { position: relative; height: 14px; background: var(--track); border-radius: 4px; margin-top: 6px; }
+.meter .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+.meter .over { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-primary); }
+.meter .pace { position: absolute; top: -5px; bottom: -5px; width: 0; border-left: 2px solid var(--text-secondary); }
+.alloc-foot { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.scroll { overflow-x: auto; }
+.heat { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 12px; }
+.heat th { color: var(--text-secondary); font-weight: 500; text-align: center; padding: 4px 2px; vertical-align: bottom; }
+.heat th.row { text-align: left; white-space: nowrap; }
+.heat td { text-align: center; padding: 8px 4px; border-radius: 4px; font-variant-numeric: tabular-nums; }
+.heat td.total { font-weight: 600; background: transparent; }
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th { color: var(--text-secondary); font-weight: 500; }
+.tag { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+.multiple { margin-top: 14px; }
+.multiple h3 { font-size: 13px; font-weight: 600; margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
+.empty { color: var(--text-muted); font-size: 13px; padding: 8px 0; }
+#tip { position: fixed; pointer-events: none; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); display: none; z-index: 10; min-width: 160px; }
+#tip .t { font-weight: 600; margin-bottom: 4px; }
+#tip .r { display: flex; justify-content: space-between; gap: 12px; }
+footer { color: var(--text-muted); font-size: 12px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Time dashboard</h1>
+      <p class="sub" id="periodLabel"></p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View">
+        <button data-view="totals" aria-pressed="true">Totals</button>
+        <button data-view="time" aria-pressed="false" id="timeBtn">Over time</button>
+      </div>
+      <button class="ghost" id="themeBtn" aria-label="Toggle light and dark">Light / dark</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card tile hero span-3"><div class="label">Hours logged</div><div class="value" id="tTotal"></div><div class="delta" id="tTotalSub"></div></div>
+    <div class="card tile span-3"><div class="label">Against expected pace</div><div class="value" id="tPace"></div><div class="delta" id="tPaceSub"></div></div>
+    <div class="card tile span-3"><div class="label">Billable share</div><div class="value" id="tBill"></div><div class="delta" id="tBillSub"></div></div>
+    <div class="card tile span-3"><div class="label">Client allocation used</div><div class="value" id="tAlloc"></div><div class="delta" id="tAllocSub"></div></div>
+  </div>
+
+  <div class="grid" id="viewTotals" style="margin-top:14px">
+    <div class="card span-7">
+      <h2>Hours by day</h2>
+      <p class="note">Stacked by project. Shaded columns are weekends; holidays are marked under the axis (H on a month).</p>
+      <div class="legend" id="legDay"></div>
+      <div id="dayChart"></div>
+    </div>
+    <div class="card span-5">
+      <h2>Against allocation</h2>
+      <p class="note" id="allocNote"></p>
+      <div id="alloc"></div>
+    </div>
+    <div class="card span-7">
+      <h2>Where the hours went</h2>
+      <p class="note">Hours by project and activity type. Docs is Documentation, Config is Coding and Configuration, Comms is Communications, Team is People and Team Activities. Stronger blue means more hours.</p>
+      <div id="heat"></div>
+    </div>
+    <div class="card span-5">
+      <h2>Project split</h2>
+      <p class="note">Share of hours logged in the period.</p>
+      <div id="split"></div>
+    </div>
+    <div class="card span-12">
+      <h2>Day by day</h2>
+      <p class="note">The same numbers as the chart, as a table.</p>
+      <div class="scroll" id="dayTable"></div>
+    </div>
+  </div>
+
+  <div class="grid" id="viewTime" style="margin-top:14px" hidden>
+    <div class="card span-12">
+      <h2 id="otTitle"></h2>
+      <p class="note" id="otNote"></p>
+      <div class="legend" id="legTime"></div>
+      <div id="bucketChart"></div>
+    </div>
+    <div class="card span-12">
+      <h2 id="awTitle"></h2>
+      <p class="note" id="awNote"></p>
+      <div class="legend"><span><span class="sw" style="background:var(--text-muted)"></span>Logged (in the project's color)</span><span><span class="key-tick"></span>Allocated</span></div>
+      <div id="allocMultiples"></div>
+    </div>
+    <div class="card span-12">
+      <h2 id="btTitle"></h2>
+      <p class="note" id="btNote"></p>
+      <div class="scroll" id="bucketTable"></div>
+    </div>
+  </div>
+
+  <footer id="foot"></footer>
+</main>
+<div id="tip"></div>
+
+<script>
+const D = /*__DATA__*/null;
+
+const fmt = h => (Math.round(h * 100) / 100).toString();
+const dt = s => new Date(s + "T12:00:00");
+const iso = d => { const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), dd = String(d.getDate()).padStart(2, "0"); return `${y}-${m}-${dd}`; };
+const days = (a, b) => { const out = []; for (let d = dt(a); iso(d) <= b; d.setDate(d.getDate() + 1)) out.push(iso(d)); return out; };
+const dow = s => dt(s).getDay();
+const isWeekend = s => dow(s) === 0 || dow(s) === 6;
+const dayName = s => dt(s).toLocaleDateString("en-US", {weekday: "short"});
+const dayNum = s => dt(s).toLocaleDateString("en-US", {month: "short", day: "numeric"});
+const sum = a => a.reduce((s, v) => s + v, 0);
+const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;
+const tip = document.getElementById("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = "block"; const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip() { tip.style.display = "none"; }
+const swatch = c => `<span class="sw" style="background:${c}"></span>`;
+const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+
+const PROJECTS = D.projects.map(p => ({...p, color: `var(--s${p.slot})`}));
+const CLIENTS = PROJECTS.filter(p => p.kind === "client");
+const REC = D.records;
+const HOL = D.holidays;
+const TODAY = D.today;
+const PER_DAY = D.baselinePerDay;
+const SPAN = days(D.start, D.end);
+const ACTIVITIES = ["Documentation", "Coding and Configuration", "Meeting", "Communications", "People and Team Activities", "Admin and Overhead", "Presales", "Learning and Development", "Recruiting", "Travel", "Bench", "PTO"];
+const ACT_SHORT = {"Documentation": "Docs", "Coding and Configuration": "Config", "Communications": "Comms", "People and Team Activities": "Team", "Admin and Overhead": "Admin", "Learning and Development": "Learning"};
+
+const logged = (p, ds) => sum(REC.filter(r => r.p === p && (!ds || ds.includes(r.d))).map(r => r.h));
+const alloc = (p, ds) => { const a = D.allocDaily[p] || {}; return sum((ds || SPAN).map(d => a[d] || 0)); };
+const workday = d => !isWeekend(d) && !HOL[d];
+
+// Buckets: one per day for a week or shorter, otherwise Monday-to-Sunday weeks trimmed to the period.
+const BY_DAY = SPAN.length <= 7;
+const BUCKETS = (() => {
+  if (BY_DAY) return SPAN.map(d => ({start: d, end: d, ds: [d], label: `${dayName(d)} ${dt(d).getDate()}`, range: `${dayName(d)}, ${dayNum(d)}`}));
+  const out = []; let cur = null;
+  SPAN.forEach(d => { if (!cur || dow(d) === 1) { cur = {start: d, ds: []}; out.push(cur); } cur.ds.push(d); cur.end = d; });
+  out.forEach(b => { b.label = dayNum(b.start); b.range = b.start === b.end ? dayNum(b.start) : `${dayNum(b.start)} to ${dayNum(b.end)}`; });
+  return out;
+})();
+BUCKETS.forEach(b => {
+  b.future = b.start > TODAY;
+  b.weekdays = b.ds.filter(d => !isWeekend(d)).length;
+  b.expected = b.ds.filter(d => workday(d) && d <= TODAY).length * PER_DAY;
+  b.holidays = b.ds.filter(d => HOL[d]);
+  b.capacity = b.weekdays * PER_DAY;
+  PROJECTS.forEach(p => { b["L" + p.label] = logged(p.label, b.ds); b["A" + p.label] = alloc(p.label, b.ds); });
+  b.total = sum(PROJECTS.map(p => b["L" + p.label]));
+  b.allocTotal = sum(CLIENTS.map(p => b["A" + p.label]));
+});
+
+function header() {
+  document.getElementById("periodLabel").textContent = `${D.label} · ${dayNum(D.start)} to ${dayNum(D.end)}, ${dt(D.end).getFullYear()}`;
+  document.getElementById("timeBtn").textContent = BY_DAY ? "Day by day" : "Week by week";
+  const total = sum(REC.map(r => r.h));
+  const holHours = sum(REC.filter(r => HOL[r.d]).map(r => r.h));
+  const expected = SPAN.filter(d => workday(d) && d <= TODAY).length * PER_DAY;
+  const counted = total - holHours, diff = counted - expected;
+  const billable = sum(REC.filter(r => r.b).map(r => r.h));
+  document.getElementById("tTotal").textContent = fmt(total) + "h";
+  document.getElementById("tTotalSub").textContent = `${REC.length} time records`;
+  if (expected > 0) {
+    document.getElementById("tPace").textContent = `${diff >= 0 ? "+" : ""}${fmt(diff)}h`;
+    document.getElementById("tPaceSub").innerHTML = `<span class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "▲ Ahead" : "▼ Behind"}</span> · ${fmt(counted)}h vs ${fmt(expected)}h expected` + (holHours ? ` · ${fmt(holHours)}h on holidays on top` : "");
+  } else { document.getElementById("tPace").textContent = "–"; document.getElementById("tPaceSub").textContent = "No workdays have passed in this period yet"; }
+  document.getElementById("tBill").textContent = total ? pct(billable, total) + "%" : "–";
+  document.getElementById("tBillSub").textContent = `${fmt(billable)}h billable · ${fmt(total - billable)}h non-billable`;
+  const aTot = sum(CLIENTS.map(p => alloc(p.label))), lTot = sum(CLIENTS.map(p => logged(p.label)));
+  if (D.hasAlloc && aTot > 0) {
+    document.getElementById("tAlloc").textContent = pct(lTot, aTot) + "%";
+    document.getElementById("tAllocSub").textContent = `${fmt(lTot)}h logged of ${fmt(aTot)}h allocated across client projects`;
+  } else { document.getElementById("tAlloc").textContent = "–"; document.getElementById("tAllocSub").textContent = D.hasAlloc ? "No allocation in this period" : "Allocations are not set up in the profile"; }
+  document.getElementById("foot").textContent = `Built ${D.generated} from TaskRay time records in ${D.org}${D.hasAlloc ? ", with allocations from Resource Hero" : ""}. Expected pace is ${fmt(PER_DAY)}h per weekday that has passed, with holidays left out; hours worked on holidays count as extra.`;
+}
+
+function stackedColumns(el, rows, opts) {
+  // rows: [{key, label, sub, values: {projectLabel: hours}, total, shade, mark, tipHtml}]
+  const W = 640, H = opts.height || 260, m = {l: 30, r: 8, t: 18, b: opts.bottom || 44};
+  const peak = Math.max(opts.minMax || 8, ...rows.map(r => Math.max(r.total, r.mark || 0)));
+  const stepV = peak > 40 ? 10 : peak > 16 ? 4 : 2;
+  const maxY = Math.ceil(peak / stepV) * stepV;
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, band = iw / rows.length, bw = Math.min(24, band * 0.55);
+  const y = v => m.t + ih - v / maxY * ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.aria}">`;
+  rows.forEach((r, i) => { if (r.shade) s += `<rect x="${m.l + i * band}" y="${m.t}" width="${band}" height="${ih}" fill="var(--weekend)"/>`; });
+  for (let v = 0; v <= maxY; v += stepV) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="${v === 0 ? "var(--baseline)" : "var(--grid)"}" stroke-width="1"/><text class="axis" x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  if (opts.refLine) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(opts.refLine)}" y2="${y(opts.refLine)}" stroke="var(--text-muted)" stroke-width="1"/><text class="axis" x="${W - m.r}" y="${y(opts.refLine) - 4}" text-anchor="end">${opts.refLabel}</text>`;
+  const dense = rows.length > 14;
+  rows.forEach((r, i) => {
+    const cx = m.l + i * band + band / 2, x = cx - bw / 2;
+    let base = 0;
+    const segs = PROJECTS.filter(p => (r.values[p.label] || 0) > 0);
+    segs.forEach((p, j) => {
+      const top = base + r.values[p.label];
+      const y0 = y(base) - (j > 0 ? 1 : 0), y1 = y(top) + (j < segs.length - 1 ? 1 : 0);
+      const hgt = Math.max(0, y0 - y1), rad = j === segs.length - 1 ? Math.min(4, hgt, bw / 2) : 0;
+      s += rad > 0 ? `<path d="M${x},${y0} V${y1 + rad} Q${x},${y1} ${x + rad},${y1} H${x + bw - rad} Q${x + bw},${y1} ${x + bw},${y1 + rad} V${y0} Z" fill="${p.color}"/>` : `<path d="M${x},${y0} V${y1} H${x + bw} V${y0} Z" fill="${p.color}"/>`;
+      base = top;
+    });
+    if (r.mark) s += `<line x1="${x - 5}" x2="${x + bw + 5}" y1="${y(r.mark)}" y2="${y(r.mark)}" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>`;
+    if (r.total > 0 && !dense) s += `<text class="axis" x="${cx}" y="${y(Math.max(r.total, r.mark || 0)) - 6}" text-anchor="middle" style="fill:var(--text-secondary);font-weight:600">${fmt(r.total)}</text>`;
+    s += `<text class="axis" x="${cx}" y="${H - m.b + 16}" text-anchor="middle">${r.label}</text>`;
+    if (r.sub) s += `<text class="axis" x="${cx}" y="${H - m.b + 29}" text-anchor="middle">${r.sub}</text>`;
+    if (r.sub2) s += `<text class="axis" x="${cx}" y="${H - m.b + 42}" text-anchor="middle" style="font-weight:600">${r.sub2}</text>`;
+    s += `<rect class="hit" data-i="${i}" x="${m.l + i * band}" y="${m.t}" width="${band}" height="${ih}" fill="transparent"/>`;
+  });
+  s += `</svg>`;
+  el.innerHTML = s;
+  el.querySelectorAll(".hit").forEach(h => { h.addEventListener("mousemove", e => showTip(e, rows[+h.dataset.i].tipHtml)); h.addEventListener("mouseleave", hideTip); });
+}
+
+function projectRows(r, labels) {
+  return PROJECTS.filter(p => (r.values[p.label] || 0) > 0).map(p => `<div class="r"><span>${swatch(p.color)} ${p.label}</span><span>${fmt(r.values[p.label])}h</span></div>`).join("");
+}
+
+function renderTotals() {
+  document.getElementById("legDay").innerHTML = PROJECTS.map(p => `<span>${swatch(p.color)}${p.label}</span>`).join("");
+  const dense = SPAN.length > 14;
+  const rows = SPAN.map(d => {
+    const values = {}; PROJECTS.forEach(p => values[p.label] = logged(p.label, [d]));
+    const r = {values, total: sum(Object.values(values)), shade: isWeekend(d),
+      label: dense ? dayName(d)[0] : dayName(d), sub: String(dt(d).getDate()), sub2: HOL[d] ? (dense ? "H" : "Holiday") : ""};
+    r.tipHtml = `<div class="t">${dayName(d)}, ${dayNum(d)}${HOL[d] ? " · " + HOL[d] : ""}${isWeekend(d) ? " · weekend" : ""}</div>` + projectRows(r) + `<div class="r" style="margin-top:4px;font-weight:600"><span>Total</span><span>${fmt(r.total)}h</span></div>`;
+    return r;
+  });
+  stackedColumns(document.getElementById("dayChart"), rows, {aria: "Hours by day, stacked by project", refLine: PER_DAY, refLabel: `${fmt(PER_DAY)}h day`, minMax: PER_DAY + 4});
+
+  // Allocation meters
+  const wdAll = SPAN.filter(workday), wdPassed = wdAll.filter(d => d <= TODAY);
+  const pace = wdAll.length && wdPassed.length < wdAll.length && wdPassed.length > 0 ? wdPassed.length / wdAll.length : null;
+  document.getElementById("allocNote").textContent = D.hasAlloc ? "Logged against the period's Resource Hero allocation." + (pace !== null ? " The marker shows how much of the period's workdays have passed." : "") : "Allocations are not set up in the profile, so only logged hours show.";
+  let a = "";
+  CLIENTS.forEach(p => {
+    const l = logged(p.label), al = alloc(p.label);
+    if (!l && !al) return;
+    if (!al) { a += `<div class="alloc-row"><div class="alloc-head"><span class="name">${swatch(p.color)}${p.label}</span><span class="num">${fmt(l)}h · no allocation</span></div><div class="alloc-foot">No Resource Hero assignment covers this period. Usually staffing is not set up yet or the engagement is winding down.</div></div>`; return; }
+    const scale = Math.max(al, l), fill = l / scale * 100, mark = al / scale * 100, d = l - al;
+    a += `<div class="alloc-row"><div class="alloc-head"><span class="name">${swatch(p.color)}${p.label}</span><span class="num">${fmt(l)}h of ${fmt(al)}h · ${pct(l, al)}%</span></div>
+      <div class="meter" title="${p.name}: ${fmt(l)} of ${fmt(al)} hours"><div class="fill" style="width:${fill}%;background:${p.color}"></div>${l > al ? `<div class="over" style="left:calc(${mark}% - 1px)"></div>` : ""}${pace !== null ? `<div class="pace" style="left:${pace * 100}%"></div>` : ""}</div>
+      <div class="alloc-foot">${l > al ? `${fmt(d)}h over allocation (the line marks the allocation)` : `${fmt(-d)}h of allocation left`}${pace !== null ? ` · pace marker at ${Math.round(pace * 100)}% (${wdPassed.length} of ${wdAll.length} workdays)` : ""}</div></div>`;
+  });
+  document.getElementById("alloc").innerHTML = a || `<div class="empty">No client allocation or client hours in this period.</div>`;
+
+  // Heat table
+  const acts = ACTIVITIES.filter(ac => REC.some(r => r.a === ac)).concat([...new Set(REC.map(r => r.a))].filter(ac => !ACTIVITIES.includes(ac)));
+  const cell = (p, ac) => sum(REC.filter(r => r.p === p && r.a === ac).map(r => r.h));
+  const maxC = Math.max(0, ...PROJECTS.flatMap(p => acts.map(ac => cell(p.label, ac))));
+  const step = v => v <= 0 ? 0 : Math.min(6, Math.max(1, Math.ceil(v / maxC * 6)));
+  const dark = isDark();
+  let t = `<table class="heat"><thead><tr><th class="row"></th>${acts.map(ac => `<th title="${ac}">${ACT_SHORT[ac] || ac}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+  PROJECTS.forEach(p => {
+    const rowT = logged(p.label); if (!rowT) return;
+    t += `<tr><th class="row">${swatch(p.color)} ${p.label}</th>` + acts.map(ac => { const v = cell(p.label, ac), st = step(v); const ink = v === 0 ? "var(--text-muted)" : (dark || st >= 4 ? "#fff" : "var(--text-primary)"); return `<td style="background:var(--seq-${st});color:${ink}" title="${p.label} · ${ac}: ${fmt(v)}h">${v ? fmt(v) : "–"}</td>`; }).join("") + `<td class="total">${fmt(rowT)}</td></tr>`;
+  });
+  const total = sum(REC.map(r => r.h));
+  t += `<tr><th class="row">Total</th>${acts.map(ac => `<td class="total">${fmt(sum(REC.filter(r => r.a === ac).map(r => r.h)))}</td>`).join("")}<td class="total">${fmt(total)}</td></tr></tbody></table>`;
+  document.getElementById("heat").innerHTML = `<div class="scroll">${t}</div>`;
+
+  // Project split
+  const parts = PROJECTS.map(p => ({p, v: logged(p.label)})).filter(o => o.v > 0);
+  let sp = `<svg viewBox="0 0 400 34" role="img" aria-label="Project split">`, x0 = 0;
+  parts.forEach((o, i) => { const w = o.v / total * 400 - (i < parts.length - 1 ? 2 : 0), first = i === 0, last = i === parts.length - 1, r = Math.min(4, w / 2);
+    sp += `<path d="M${x0 + (first ? r : 0)},6 H${x0 + w - (last ? r : 0)} ${last ? `Q${x0 + w},6 ${x0 + w},${6 + r} V${28 - r} Q${x0 + w},28 ${x0 + w - r},28` : "V28"} H${x0 + (first ? r : 0)} ${first ? `Q${x0},28 ${x0},${28 - r} V${6 + r} Q${x0},6 ${x0 + r},6` : "V6"} Z" fill="${o.p.color}"/>`; x0 += w + 2; });
+  sp += `</svg><table class="data" style="margin-top:10px">` + parts.map(o => `<tr><td title="${o.p.name}">${swatch(o.p.color)} ${o.p.label}</td><td>${fmt(o.v)}h</td><td>${pct(o.v, total)}%</td></tr>`).join("") + `</table>`;
+  document.getElementById("split").innerHTML = parts.length ? sp : `<div class="empty">No hours logged.</div>`;
+
+  // Day table
+  let dtb = `<table class="data"><thead><tr><th>Day</th>${PROJECTS.map(p => `<th>${p.label}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+  SPAN.forEach(d => { const vs = PROJECTS.map(p => logged(p.label, [d])); const tt = sum(vs); if (!tt && isWeekend(d) && !HOL[d]) return; dtb += `<tr><td>${dayName(d)}, ${dayNum(d)}${HOL[d] ? `<span class="tag">${HOL[d]}</span>` : ""}${isWeekend(d) ? `<span class="tag">weekend</span>` : ""}</td>${vs.map(v => `<td>${v ? fmt(v) : "–"}</td>`).join("")}<td><strong>${tt ? fmt(tt) : "–"}</strong></td></tr>`; });
+  dtb += `<tr><td><strong>Total</strong></td>${PROJECTS.map(p => `<td><strong>${fmt(logged(p.label))}</strong></td>`).join("")}<td><strong>${fmt(total)}</strong></td></tr></tbody></table>`;
+  document.getElementById("dayTable").innerHTML = dtb;
+}
+
+function renderTime() {
+  const unit = BY_DAY ? "day" : "week";
+  document.getElementById("otTitle").textContent = `Hours per ${unit}`;
+  document.getElementById("otNote").textContent = `Stacked by project. The tick is the hours expected for the ${unit} so far (${fmt(PER_DAY)}h per workday, holidays out).` + (BY_DAY ? "" : " The first and last weeks are trimmed to the period.");
+  document.getElementById("legTime").innerHTML = PROJECTS.map(p => `<span>${swatch(p.color)}${p.label}</span>`).join("") + `<span><span class="key-tick"></span>Expected</span>`;
+  const rows = BUCKETS.map(b => {
+    const values = {}; PROJECTS.forEach(p => values[p.label] = b["L" + p.label]);
+    const r = {values, total: b.total, mark: b.future ? 0 : b.expected, shade: BY_DAY && isWeekend(b.start),
+      label: b.label, sub: BY_DAY ? "" : (b.future ? "upcoming" : ""), sub2: b.holidays.length ? (BY_DAY ? "Holiday" : `${b.holidays.length} holiday${b.holidays.length > 1 ? "s" : ""}`) : ""};
+    r.tipHtml = `<div class="t">${b.range}${b.future ? " · upcoming" : ""}</div>` + projectRows(r) + `<div class="r" style="margin-top:4px;font-weight:600"><span>Total</span><span>${fmt(b.total)}h</span></div>` + (b.future ? "" : `<div class="r"><span>Expected</span><span>${fmt(b.expected)}h</span></div>`) + (D.hasAlloc ? `<div class="r"><span>Client allocation</span><span>${fmt(b.allocTotal)}h</span></div>` : "");
+    return r;
+  });
+  stackedColumns(document.getElementById("bucketChart"), rows, {aria: `Hours per ${unit}, stacked by project`, minMax: BY_DAY ? PER_DAY + 4 : PER_DAY * 5, height: 280});
+
+  // Allocation small multiples, one per client project
+  document.getElementById("awTitle").textContent = BY_DAY ? "Allocation day by day" : "Allocation week by week";
+  document.getElementById("awNote").textContent = D.hasAlloc ? `Each ${unit}: hours logged (column) against hours allocated (tick). The percentage under each ${unit} is the allocation as a share of a full-time ${unit}.` : "Allocations are not set up in the profile.";
+  let html = "";
+  const shown = CLIENTS.filter(p => BUCKETS.some(b => b["L" + p.label] || b["A" + p.label]));
+  shown.forEach((p, k) => {
+    const id = "mult" + k;
+    html += `<div class="multiple"><h3>${swatch(p.color)}${p.label}<span class="tag">${p.name}</span></h3><div id="${id}"></div></div>`;
+  });
+  document.getElementById("allocMultiples").innerHTML = D.hasAlloc && shown.length ? html : `<div class="empty">${D.hasAlloc ? "No client allocation or client hours in this period." : "Allocations are not set up in the profile."}</div>`;
+  if (!D.hasAlloc) { renderBucketTable(); return; }
+  shown.forEach((p, k) => {
+    const rows = BUCKETS.map(b => {
+      const l = b["L" + p.label], a = b["A" + p.label], share = b.capacity ? pct(a, b.capacity) : null;
+      const values = {}; values[p.label] = l;
+      const r = {values: values, total: l, mark: a, shade: BY_DAY && isWeekend(b.start), label: b.label, sub: a ? (share !== null ? share + "%" : "") : "–"};
+      r.tipHtml = `<div class="t">${p.label} · ${b.range}${b.future ? " · upcoming" : ""}</div><div class="r"><span>Logged</span><span>${fmt(l)}h</span></div><div class="r"><span>Allocated</span><span>${fmt(a)}h</span></div>` + (share !== null && a ? `<div class="r"><span>Allocation share</span><span>${share}% of ${fmt(b.capacity)}h</span></div>` : "") + (a || l ? `<div class="r" style="margin-top:4px;font-weight:600"><span>${l >= a ? "Over" : "Under"}</span><span>${fmt(Math.abs(l - a))}h</span></div>` : "");
+      return r;
+    });
+    stackedColumns(document.getElementById("mult" + k), rows, {aria: `${p.label} logged against allocated per ${unit}`, height: 190, bottom: 36, minMax: 4});
+  });
+  renderBucketTable();
+}
+
+function renderBucketTable() {
+  const unit = BY_DAY ? "Day" : "Week";
+  document.getElementById("btTitle").textContent = `${unit} by ${unit.toLowerCase()} table`;
+  document.getElementById("btNote").textContent = D.hasAlloc ? `Hours logged of hours allocated per client project, with the allocation as a share of a full-time ${unit.toLowerCase()} in brackets. The last column adds every client allocation together.` : "Hours logged per project.";
+  const others = PROJECTS.filter(p => p.kind !== "client" && BUCKETS.some(b => b["L" + p.label]));
+  const clients = CLIENTS.filter(p => BUCKETS.some(b => b["L" + p.label] || b["A" + p.label]));
+  // One cell per client project: logged, then allocated and its share of a full-time unit.
+  const clientCell = (b, p) => {
+    const l = b["L" + p.label], a = b["A" + p.label];
+    if (!D.hasAlloc) return `<td>${l ? fmt(l) : "–"}</td>`;
+    if (!l && !a) return `<td>–</td>`;
+    return `<td>${l ? fmt(l) : "0"} <span class="tag" style="margin:0">of</span> ${a ? fmt(a) : "0"}${a && b.capacity ? ` <span class="tag" style="margin:0">(${pct(a, b.capacity)}%)</span>` : ""}</td>`;
+  };
+  let t = `<table class="data"><thead><tr><th>${unit}</th>${clients.map(p => `<th title="${p.name}">${p.label}${D.hasAlloc ? " logged of allocated" : ""}</th>`).join("")}${others.map(p => `<th>${p.label}</th>`).join("")}<th>Total logged</th><th>Expected</th>${D.hasAlloc ? "<th>Allocated, all clients</th>" : ""}</tr></thead><tbody>`;
+  BUCKETS.forEach(b => {
+    t += `<tr><td>${b.range}${b.future ? `<span class="tag">upcoming</span>` : ""}${b.holidays.length ? `<span class="tag">${b.holidays.length} holiday${b.holidays.length > 1 ? "s" : ""}</span>` : ""}</td>` +
+      clients.map(p => clientCell(b, p)).join("") +
+      others.map(p => `<td>${b["L" + p.label] ? fmt(b["L" + p.label]) : "–"}</td>`).join("") +
+      `<td><strong>${b.total ? fmt(b.total) : "–"}</strong></td><td>${b.future ? "–" : fmt(b.expected)}</td>` +
+      (D.hasAlloc ? `<td>${b.allocTotal ? `${fmt(b.allocTotal)}h${b.capacity ? ` <strong>(${pct(b.allocTotal, b.capacity)}%)</strong>` : ""}` : "–"}</td>` : "") + `</tr>`;
+  });
+  t += `</tbody></table>`;
+  document.getElementById("bucketTable").innerHTML = t;
+}
+
+let view = "totals";
+function render() { header(); if (view === "totals") renderTotals(); else renderTime(); }
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  view = b.dataset.view;
+  document.getElementById("viewTotals").hidden = view !== "totals";
+  document.getElementById("viewTime").hidden = view !== "time";
+  render();
+}));
+document.getElementById("themeBtn").addEventListener("click", () => {
+  document.documentElement.dataset.theme = isDark() ? "light" : "dark"; render();
+});
+render();
+</script>
+</body>
+</html>
