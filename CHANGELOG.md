@@ -10,6 +10,11 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.19.3 (2026-11-20)
+
+- **Google Tasks from a screenshot.** A Tasks user can paste a screenshot of their calendar with tasks showing; log-time reads each task's title, day and time and proposes it as an event in the matching gap.
+- **Guide header.** The shared guide has a navy header with the name and larger Get started and What's new tabs.
+
 ## 1.19.2 (2026-11-20)
 
 - **A color for each new project.** When someone who color-codes their calendar adds a project later (at the 30-day check, from evidence drift, or on request), log-time asks its color, offering colors no other project uses. Saved as `rhythm.color_codes` and the project's `color_id`.

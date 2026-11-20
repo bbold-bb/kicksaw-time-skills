@@ -247,3 +247,18 @@ def test_tasks_are_not_described_as_unreadable():
     assert "can't see Google Tasks" not in log
     assert "Were any of these a Google Task you worked on?" in log
     assert "connector can't see" not in html.unescape(read("docs/time-skills-guide.html"))
+
+
+# 1.19.3: Tasks from a calendar screenshot; prominent guide header
+
+def test_tasks_can_come_from_a_calendar_screenshot():
+    log = read(LOG)
+    assert "screenshot of your calendar" in log
+    assert "Read each task's title, day and time from the screenshot" in log
+
+
+def test_guide_has_a_branded_header_with_the_tabs():
+    g = html.unescape(read("docs/time-skills-guide.html"))
+    top = g[g.index('<nav class="tabs"'):g.index("</nav>")]
+    assert "Kicksaw Time Skills" in top
+    assert 'id="tab-start"' in top and 'id="tab-new"' in top
