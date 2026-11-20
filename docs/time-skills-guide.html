@@ -62,19 +62,27 @@ section + section { border-top: 1px solid var(--line); }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--white); }
 
 /* What's new */
-.release { display: grid; grid-template-columns: 180px minmax(0,1fr); gap: 8px 28px; padding-block: 24px; border-top: 1px solid var(--line); }
-.release:first-of-type { border-top: 0; padding-top: 0; }
-.release .when { display: grid; gap: 4px; align-content: start; }
-.release .ver { font-family: var(--mono); font-weight: 500; color: var(--navy); font-size: 1.05rem; }
-.release .date { font-size: .9rem; color: var(--muted); }
-.release ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.release li b { font-family: var(--head); font-weight: 600; color: var(--navy); }
+.rel { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--white); }
+.rel + .rel { margin-top: 20px; }
+.rel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 14px 20px; background: var(--smoke); border-bottom: 1px solid var(--line); }
+.rel-head .ver { font-family: var(--mono); font-weight: 500; color: var(--navy); font-size: 1.1rem; }
+.rel-head .date { font-size: .9rem; color: var(--muted); }
+.rel-head .sum { flex-basis: 100%; font-family: var(--head); font-weight: 600; color: var(--navy); }
+.rel-body { padding: 18px 20px 20px; display: grid; gap: 20px; }
+.grp { display: grid; gap: 10px; }
+.grp-label { font-family: var(--head); font-weight: 700; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.changes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px 24px; }
+.chg { border-left: 3px solid var(--line); padding: 2px 0 2px 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.chg.team { border-left-color: var(--cyan); }
+.chg b { font-family: var(--head); font-weight: 600; color: var(--navy); }
+.chg p { font-size: .93rem; }
+.chg .fb { justify-self: start; margin-left: 0; }
 .fb { display: inline-block; margin-left: 6px; font-family: var(--head); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--cyan-tint); color: var(--navy); border: 1px solid var(--cyan); vertical-align: 2px; }
 .next { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
 .next div { border: 1px dashed var(--blue); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
 .next b { font-family: var(--head); color: var(--navy); }
 .next span { font-size: .95rem; }
-@media (max-width: 760px) { .release { grid-template-columns: minmax(0,1fr); } .next { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 760px) { .changes, .next { grid-template-columns: minmax(0,1fr); } }
 
 /* Flow diagram */
 .flow { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 0; align-items: stretch; }
@@ -345,33 +353,57 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <p>To update, paste the setup line from the Get started tab again. Changes marked <span class="fb">From team feedback</span> came from people using the skills.</p>
     </div>
 
-    <div class="release">
-      <div class="when"><span class="ver">1.19.1</span><span class="date">November 20, 2026</span></div>
-      <ul>
-        <li><b>New questions, asked once.</b> If you set up before 1.19.0, your next run asks about calendar colors, Google Tasks and your timezone, then never again. <span class="fb">From team feedback</span></li>
-      </ul>
-    </div>
-
-    <div class="release">
-      <div class="when"><span class="ver">1.19.0</span><span class="date">November 20, 2026</span></div>
-      <ul>
-        <li><b>Calendar first, then time records.</b> You approve the calendar events, check your calendar, and only then approve the time records. Nothing goes into Salesforce from a plan you didn't look at. <span class="fb">From team feedback</span></li>
-        <li><b>A cleaner proposal.</b> Every run shows the same layout: one block per day, the questions it needs answered, and your unaccounted time. <span class="fb">From team feedback</span></li>
-        <li><b>Written exactly as shown.</b> Time records go in with the hours you approved, and you see progress while they're written. <span class="fb">From team feedback</span></li>
-        <li><b>Your timezone, colors and Tasks.</b> Setup asks your timezone, whether you color-code projects (new events get the color), and whether you use Google Tasks, which the calendar connector can't see. <span class="fb">From team feedback</span></li>
-        <li><b>Dashboards open for you.</b> After a run, your dashboard opens in your browser, with a link to My Hours - Dashboard 2.0 in Salesforce. <span class="fb">From team feedback</span></li>
-        <li><b>Easier sign-in.</b> Setup opens Kicksaw's own Salesforce sign-in page. <span class="fb">From team feedback</span></li>
-        <li><b>Back from time away?</b> If your last time record is more than two weeks old, the run asks where to start.</li>
-      </ul>
-    </div>
-
-    <div class="release">
-      <div class="when"><span class="ver">1.18.0</span><span class="date">November 20, 2026</span></div>
-      <ul>
-        <li><b>One line sets everything up.</b> Paste the setup line and Claude installs the skills, the Salesforce CLI and Python, signs you in, and starts setup.</li>
-        <li><b>Works on Windows.</b> Setup, logging and reports all run on Windows as well as on a Mac.</li>
-      </ul>
-    </div>
+    <article class="rel">
+      <header class="rel-head"><span class="ver">1.19.1</span><span class="date">November 20, 2026</span><span class="sum">A few new questions for people already set up</span></header>
+      <div class="rel-body">
+      <div class="grp">
+        <div class="grp-label">Setup</div>
+        <div class="changes">
+          <div class="chg team"><span class="fb">From team feedback</span><b>Asked once</b><p>Your next run asks about calendar colors, Google Tasks and your timezone, then never again.</p></div>
+        </div>
+      </div>
+      </div>
+    </article>
+    <article class="rel">
+      <header class="rel-head"><span class="ver">1.19.0</span><span class="date">November 20, 2026</span><span class="sum">Calendar first, then time records, and setup that fits how you work</span></header>
+      <div class="rel-body">
+      <div class="grp">
+        <div class="grp-label">Logging your time</div>
+        <div class="changes">
+          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar first, then records</b><p>Approve the calendar, check it, then approve the time records.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>A cleaner proposal</b><p>Every run uses the same layout: one block per day, then questions, then unaccounted time.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Written exactly as shown</b><p>Records go in with the hours you approved, with progress as they're written.</p></div>
+          <div class="chg"><b>Back from time away?</b><p>If your last record is over two weeks old, it asks where to start.</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="grp-label">Setup</div>
+        <div class="changes">
+          <div class="chg team"><span class="fb">From team feedback</span><b>Your timezone</b><p>Defaults to your computer's timezone, not the Salesforce setting.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar colors and Tasks</b><p>New events match your project colors. Setup tells you Google Tasks can't be read.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Easier sign-in</b><p>Opens Kicksaw's own Salesforce sign-in page.</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="grp-label">Dashboards</div>
+        <div class="changes">
+          <div class="chg team"><span class="fb">From team feedback</span><b>Opens for you</b><p>Your dashboard opens in your browser after a run, with a link to My Hours - Dashboard 2.0.</p></div>
+        </div>
+      </div>
+      </div>
+    </article>
+    <article class="rel">
+      <header class="rel-head"><span class="ver">1.18.0</span><span class="date">November 20, 2026</span><span class="sum">One line sets everything up, on a Mac or on Windows</span></header>
+      <div class="rel-body">
+      <div class="grp">
+        <div class="grp-label">Setup</div>
+        <div class="changes">
+          <div class="chg"><b>Guided setup</b><p>Paste the setup line and Claude installs everything, signs you in, and starts setup.</p></div>
+          <div class="chg"><b>Works on Windows</b><p>Setup, logging and reports run on Windows as well as on a Mac.</p></div>
+        </div>
+      </div>
+      </div>
+    </article>
   </div>
 </section>
 
