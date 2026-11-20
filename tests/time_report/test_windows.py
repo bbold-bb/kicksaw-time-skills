@@ -68,3 +68,34 @@ def test_file_link_handles_spaces(tmp_path):
     link = time_report.file_link(str(p))
     assert link.startswith("file:///")
     assert "Salesforce%20Projects" in link
+
+
+def test_report_prints_on_a_cp1252_console(monkeypatch, tmp_path):
+    """Agents read the report through a pipe; on Windows that pipe is cp1252, which has no bar characters."""
+    import io
+    import json
+    import sys
+    profile = tmp_path / "profile.json"
+    profile.write_text(json.dumps({"org_alias": "Kicksaw-Prod", "user": {"username": "first.last@example.com"},
+                                   "projects": [], "internal": {}, "baseline_hours_per_week": 40}), encoding="utf-8")
+    today = dt.date.today().isoformat()
+    records = [{"TASKRAY__Date__c": today, "TASKRAY__Project__r": {"Name": "Acme Łódź"},
+                "Activity_Type__c": "Meeting", "TASKRAY__Hours__c": 2, "TASKRAY__Billable__c": True}]
+    monkeypatch.setattr(time_report, "run_sf", lambda args: subprocess.CompletedProcess(
+        args, 0, stdout=json.dumps({"result": {"records": records}}), stderr=""))
+    raw = io.BytesIO()
+    out = io.TextIOWrapper(raw, encoding="cp1252", errors="strict")
+    monkeypatch.setattr(sys, "stdout", out)
+    monkeypatch.setattr(sys, "argv", ["time_report.py", "week", "--profile", str(profile)])
+    time_report.main()
+    out.flush()
+    assert "Acme" in raw.getvalue().decode("utf-8")
+
+
+def test_sf_falls_back_to_the_installer_path(monkeypatch):
+    """Right after setup installs sf, the shell's PATH may not have it yet."""
+    monkeypatch.setattr(time_report.shutil, "which", lambda name: None)
+    monkeypatch.setattr(time_report.os.path, "isfile", lambda p: p in time_report.SF_FALLBACKS[:1])
+    assert time_report.sf_path() == time_report.SF_FALLBACKS[0]
+    assert "/usr/local/bin/sf" in time_report.SF_FALLBACKS
+    assert any(p.endswith(r"sf\bin\sf.cmd") for p in time_report.SF_FALLBACKS)

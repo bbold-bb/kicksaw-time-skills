@@ -46,11 +46,16 @@ PROFILE_LEGACY = [
 ]
 PROFILE_CANDIDATES = [PROFILE_HOME] + PROFILE_LEGACY
 SETUP_URL = "https://github.com/bbold-bb/kicksaw-time-skills#quick-start"
+# Where the official installers put sf, for a shell whose PATH predates the install.
+SF_FALLBACKS = [
+    "/usr/local/bin/sf",
+    os.environ.get("ProgramFiles", r"C:\Program Files") + r"\sf\bin\sf.cmd",
+]
 
 
 def sf_path():
     """The Salesforce CLI's full path. shutil.which finds sf.cmd on Windows, where a bare "sf" does not run."""
-    path = shutil.which("sf")
+    path = shutil.which("sf") or next((p for p in SF_FALLBACKS if os.path.isfile(p)), None)
     if not path:
         sys.exit("The Salesforce CLI (sf) isn't installed or isn't on your PATH. "
                  "To set it up, follow the quick start: " + SETUP_URL)
@@ -457,6 +462,11 @@ def bar(value, peak, width=22):
 
 
 def main():
+    # An agent reads this through a pipe, which Windows encodes as cp1252: no bar characters, no
+    # names outside Western Europe. Write UTF-8 everywhere.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("period", nargs="*", default=["week"])
     ap.add_argument("--by-day", action="store_true")
