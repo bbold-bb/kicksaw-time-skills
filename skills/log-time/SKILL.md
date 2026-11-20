@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.18.0
+version: 1.19.0
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -52,23 +52,27 @@ The less the user types, the better. Every question in setup, drift, and the pro
 Setup asks as little as possible. What can be read is read; the user confirms it with a click. Do not write a time record during setup.
 
 1. **Org.** Try `sf org display user -o Kicksaw-Prod --json` without asking. If it resolves, that is the org; `id` and `username` become `user.user_id` and `user.username`. If it fails, run `sf org list --json` and offer the logged-in aliases as options. If there are none, run the *Org login* step of `SETUP.md` (see *Preflight*) and continue once it succeeds. Never ask the user to type their own Id.
-2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the user's `TimeZoneSidKey` for `rhythm.timezone`, and the Resource Hero resource for `resource_hero.resource_id` (both in the reference). No question.
+2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the Resource Hero resource for `resource_hero.resource_id` and the user's `TimeZoneSidKey` (both in the reference). No question here; the timezone is confirmed in step 8, because the Salesforce setting is often the company's default rather than where the user works.
 3. **Projects, inferred.** Gather candidates from the org, without asking first:
    - their current **Resource Hero assignments** that link to a TaskRay project (the *setup assignments* query in the Resource Hero reference);
    - the projects they **logged to in the last 90 days** (the *recent history* query).
    Drop any that are closed, completed, or archived, and drop the internal project (step 4 adds it). Show the rest in one **multi-select** pop-up: "These are the projects you're on. Pick the ones to log against." Each option is the project name; its description gives the client, the end date, and where it was found ("assigned through Dec 31", "logged 14 times, last Nov 3"). "Other" takes a client name: run the *active project* query for it and offer the matches as a follow-up pop-up. Zero client projects is a valid answer for someone new or on the bench.
    For each chosen project, resolve its live time-entry task with the *live task* query. Exactly one unarchived match is expected; if there are zero or several, offer them as options (the *live task rule*, used everywhere a task is resolved). `record_type` is `Client Work` for every client project. Save the Resource Hero assignment Id as `rh_assignment_id` when there is one.
-   **Labels** default to the client's account name, shortened the obvious way ("Northwind Health Partners" becomes "Northwind"). Only ask when two projects would share a label, or a label holds a colon: then offer two suggestions per project, with "Other".
-4. **Internal project.** Run the *internal project* query. One match: use it without asking. Several: one pop-up with the matches, each with its end date. Then resolve its live task the same way. Every user gets an internal project; it is not optional.
+   When the *live task rule* has to offer several tasks, say why in plain words first: "This project has more than one place to log time. The one marked Recommended is the newest." Mark the newest unarchived one "(Recommended)".
+   **Labels** default to the client's account name, shortened the obvious way ("Northwind Health Partners" becomes "Northwind"). Only ask when two projects would share a label, or a label holds a colon: then offer two suggestions per project, with "Other". Start that question with why it matters: "Labels go at the front of every calendar event this creates, so it can tell your projects apart. These two need different ones."
+4. **Internal project.** Run the *internal project* query. One match: use it without asking. Several: one pop-up with the matches, each with its end date. Then resolve its live task the same way. Every user gets an internal project; it is not optional. When a question about it is needed, say: "Every user logs internal time (1:1s, all-hands, time logging itself) to the company's internal project. Which of these is it?"
    **Allowed values.** Read the allowed picklist values for both record types (*allowed values* in the reference) and save them as `picklists`. Check that the fixed values the insert payload sets (time type, category, non-billable reason) are among them; if one isn't, stop and show the user the allowed values, because every insert would fail.
 5. **Folders.** `transcript_root` is `~/.claude/projects` unless it does not exist (on Windows that is `%USERPROFILE%\.claude\projects`). For `repo_roots`, look under the home folder on either system, two levels down, for folders that hold git repos, and offer them as a **multi-select** (`~/Code`, `~/Projects`, and so on), with "Other" for a path. If none are found, save an empty list and move on.
    Then map folders to projects **without asking**: a repo or transcript folder whose path contains a project's label or client name goes in that project's `directories`. Discover repos as the immediate children of each root plus one level down (anything holding a `.git`). Discover transcript folders as those with a file modified in the last 90 days, and map each back to its real path by testing the path-encoded name against folders on disk (see *Directory matching*, drive letters included); **the entry saved is always that real path**, written with `~` for the home folder and forward slashes, never a bare folder name. Everything else stays unmapped. It is asked about on the first run that finds work in it (*Evidence drift*), so nobody answers questions about folders they no longer use.
 6. **Slack.** Confirm the Slack connector by searching for messages from the user in the last 30 days; the search tool reports the acting user's Id, which becomes `slack.user_id`. If the connector is not connected, say so, save `"slack": null`, and continue. Slack is an evidence source, not a gate, and every later run notes that it is missing.
    For each project, find its channels: a channel search across public and private channels using the account name and its obvious short forms, plus the channels the user posted in during the last 90 days whose name matches. **Verify every candidate live** (resolve the Id and read back the name, purpose, and the user's message count). Then one pop-up, one **multi-select** question per project: "Which of these channels are for <Label>?", each option a channel with its purpose and message count. A project with no candidates gets no question. Set `client_facing` to true for a `kicksaw_<client>` or `kicksaw-<client>` channel and false otherwise; the summary in step 8 shows it for correction.
    Every other channel stays unmapped and is asked about on the first run that finds the user posting in it. Group DMs and DMs are never mapped; they are attributed from content at run time (Step 3).
-7. **Calendar.** `rhythm.calendar_account` is the org username. Confirm it by listing one day of that calendar. If that fails, offer the calendars the connector can see as options.
-8. **Workday and save.** One last pop-up, two questions:
+7. **Calendar.** `rhythm.calendar_account` is the org username. Confirm it by listing one day of that calendar. If that fails, offer the calendars the connector can see as options. Then one pop-up, two questions:
+   - "Do you color-code projects on your calendar?" Options: "No" and "Yes". On a yes, list the last 30 days of events, and for each project take the color most used on events whose title carries its label or client name. Show the result as one question per project ("ClientA looks like Peacock. Right?"), with the other colors as options, and save its Google event color Id as the project's `color_id`. Color names: 1 Lavender, 2 Sage, 3 Grape, 4 Flamingo, 5 Banana, 6 Tangerine, 7 Peacock, 8 Graphite, 9 Blueberry, 10 Basil, 11 Tomato. On a no, `color_id` stays null for every project. Labels stay the main signal either way, since people change colors between projects.
+   - "Do you track work as Google Tasks?" Options: "No" and "Yes". On a yes, say: "The calendar connector can't see Google Tasks, so I won't find work you tracked only as a task. When I list unaccounted time, tell me what those gaps were, or put the work on your calendar as an event." Save `rhythm.uses_google_tasks` either way.
+8. **Workday, timezone, and save.** One last pop-up, three questions:
    - "What are your usual work hours?" Options: 9:00 to 5:00 (Recommended), 8:00 to 4:30, 8:30 to 5:00, with "Other" for anything else. They set `rhythm.workday_start` and `workday_end`. They only shape gap-finding; after-hours work is still logged.
+   - "What timezone do you work in?" The first option, marked "(Recommended)", is the computer's timezone: on a Mac, the part of `readlink /etc/localtime` after `zoneinfo/`; on Windows, `(Get-TimeZone).Id` in PowerShell, translated to its IANA name ("Eastern Standard Time" is `America/New_York`). Add the Salesforce `TimeZoneSidKey` as a second option when it differs. The answer is `rhythm.timezone`.
    - "Save this profile?" Before it, show a short summary: projects with labels, mapped folders, mapped channels, calendar, timezone. Options: "Save it" (Recommended) and "Change something", where "Other" names the change.
 
 `conventions` starts empty and grows only when the user states a rule during a run. Save the profile with `verified_on` set to today. Skip the drift check on a profile saved seconds ago, then continue into Step 1 with the scope the user originally asked for.
@@ -131,6 +135,8 @@ An explicit scope from the user wins outright; when they name a date or range, t
 
 If the default is in play and the user has no records at all, ask for a start date and offer the Monday of the current week as the default. With an explicit scope, ask nothing.
 
+If the default is in play and the boundary is more than 14 days ago (someone back from leave, or new to logging this way), ask before building months of days: "Your last time record is <date>. Where should I start?" Options: the Monday of the current week (Recommended), the boundary itself, and "Other" for a date.
+
 Once the scope is known, run the *records in scope* query so reconciliation sees every booked record in range; the *last records* query is only for finding the boundary and is capped.
 
 **Never key the boundary off `CreatedDate`.** Records are written retroactively, so when a record was submitted says nothing about how far the logging actually got. Scanning forward from a submit time silently swallows every hour that was worked before it and never logged.
@@ -152,6 +158,8 @@ Writing the delta follows the existing rule: a record created **today** is merge
 Use the Google Calendar connector on the profile's `calendar_account` for the scope dates, fetching each full day (midnight to midnight in the profile timezone) so after-hours meetings are seen, not just the workday window. If the connector is not connected, say so and stop; the calendar is not optional. The result is often too large for context; when it saves to a file, parse it with jq or python rather than reading it whole.
 
 **Times come back already converted; do not shift them again.** Every event carries a `dateTime` with a UTC offset plus a separate `timeZone` label. When the request names a timezone, Google converts each `dateTime` into it but leaves the original `timeZone` label untouched. A meeting booked by someone in Chicago or Los Angeles therefore arrives at the correct local wall-clock time with a foreign-looking label sitting next to it. **Read the offset on `dateTime` and ignore the label.** Treating the label as the offset moves those meetings by hours, which both misplaces real meetings and drops reconstructed blocks on top of them.
+
+When projects have a `color_id`, an event's `colorId` attributes it to that project if the title doesn't already, and a title wins when the two disagree.
 
 Merge overlapping events, then find gaps of 25 minutes or more inside the workday. Skip `OUT_OF_OFFICE` events. Note any events that **overlap each other**: those are double-bookings the user must resolve, and they inflate the day if left alone.
 
@@ -213,29 +221,89 @@ The calendar is the default. When transcripts or Slack show heavy activity durin
 
 ## Step 4: Propose
 
-Show one table covering both halves of the work:
+The proposal is approved in **two stages: calendar events first, then time records.** The user sees their calendar filled in and checks it before any time record is proposed, so no record is written from a plan they never looked at.
 
-- **Proposed calendar events** for the gaps and for significant concurrent work: title, times, length, and the evidence behind each. Events may overlap under the *Overlapping sources* rule; say when they do.
-- **Proposed time records**: one row per date, per project, per Activity Type, with hours from the deduplicated timeline and the comma-joined event titles that become the notes. Call the Activity Type out so it can be corrected before anything is written.
-- Day totals, and a grand total. When calendar hours exceed record hours because of overlap, show both so the difference is visible.
-- **The ambiguous calls**, listed explicitly. Overlapping meetings, heavy work during an invited meeting on another project, DMs with unclear attribution, work that spans midnight, anything internal versus billable, anything with thin evidence.
-- **Unaccounted gaps** with no evidence at all. Group by day, one line per day, with a per-day subtotal and a grand total. Use 12-hour times with am/pm and the duration in parentheses:
+**Use these templates exactly.** Same headings, same order, same table columns, a blank line between sections, and one day per block. Everyone's proposal should look the same, so it reads at a glance. Use 12-hour times with am/pm, project labels from the profile, and hours to two decimals at most. Leave out a section only when it would be empty, and say so in one line ("No unaccounted time.").
+
+### Stage 1: calendar events
+
+One message, laid out like this:
 
 ```
-**Unaccounted, 8.25h across 4 days**
+## Proposed calendar events · Mon 11/16 to Thu 11/19
 
-Wed 9/2   1.0h    9:00 to 9:30 am (0.5)   ·   2:00 to 2:30 pm (0.5)
-Thu 9/3   1.75h   9:00 to 9:45 am (0.75)  ·   2:00 to 2:30 pm (0.5)   ·   4:30 to 5:00 pm (0.5)
-Fri 9/4   5.0h    10:30 to 11:30 am (1.0) ·   1:00 to 5:00 pm (4.0)
+### Mon 11/16 · 6.5h on the calendar (2.0h new)
+
+| Time | Event | Length | Why |
+| --- | --- | --- | --- |
+| 9:00 to 10:00 am | ClientA: Sprint planning | 1.0h | already on calendar |
+| 10:00 to 11:30 am | ClientA: Built intake flow | 1.5h | new · Slack thread with the team |
+| 1:00 to 1:30 pm | Internal: Status report | 0.5h | new · overlaps the 1:00 call |
+
+### Tue 11/17 · 7.0h on the calendar (1.5h new)
+
+(same table)
+
+---
+
+**Needs your call (2)**
+
+1. Tue 2:00 pm, the client sync ran long. ClientA or ClientB?
+2. Wed 7:00 am, emails before work. Log them or skip?
+
+**Unaccounted, 3.5h across 2 days**
+
+Mon 11/16   1.0h    2:00 to 3:00 pm (1.0)
+Wed 11/18   2.5h    9:00 to 10:00 am (1.0)  ·  3:30 to 5:00 pm (1.5)
+
+---
+
+Answer the questions above, then: write these events to your calendar?
 ```
 
-Never pad the list with sub-25-minute gaps, and say plainly when a day has none.
+- **The day tables** list every event in the day, existing and new, in time order, so the day reads whole. *Why* says "already on calendar" for existing events. For new ones it gives the evidence in a few words, and notes an overlap under the *Overlapping sources* rule. The day heading gives calendar hours and how much of that is new.
+- **Needs your call** lists the ambiguous calls, numbered: overlapping meetings, heavy work during an invited meeting on another project, DMs with unclear attribution, work that spans midnight, internal versus billable, anything with thin evidence. Ask them through the option pop-up (*Asking questions*) right after the message.
+- **Unaccounted** lists gaps with no evidence at all, one line per day with a per-day subtotal and a grand total, duration in parentheses. Never pad it with sub-25-minute gaps. When the profile has `rhythm.uses_google_tasks`, add one line under it: "Tasks don't show up here. If any of these gaps were a task, tell me what it was."
 
-Then stop and wait. One approval covers both the calendar events and the time records; the user can also approve the records alone and skip the calendar. If a calendar write fails partway, report which events landed and still ask before writing any time record.
+Then stop and wait. The approval writes the calendar events (Step 5) and nothing else. The user can skip the calendar ("records only"): then go straight to Stage 2.
+
+### Stage 2: time records
+
+Propose the records only after the calendar events are written (or skipped). First say: "Your calendar is updated. Have a look, and tell me if anything should move." Wait until they have checked their calendar and say it looks right, applying any changes they ask for to the calendar first. Then build the records from the calendar as it now stands and show one message, laid out like this:
+
+```
+## Proposed time records · 9 records, 24.5h
+
+| Date | Project | Activity Type | Hours | Notes |
+| --- | --- | --- | --- | --- |
+| Mon 11/16 | ClientA | Meeting | 1.0 | ClientA: Sprint planning |
+| Mon 11/16 | ClientA | Coding and Configuration | 1.5 | ClientA: Built intake flow |
+| Mon 11/16 | Internal | Documentation | 0.5 | Internal: Status report |
+
+**By project**
+
+| Project | This run | Week to date | Allocation |
+| --- | --- | --- | --- |
+| ClientA | 18.0 | 22.0 | 30 |
+| Internal | 6.5 | 8.0 | 10 |
+
+**Day totals:** Mon 8.0 · Tue 7.5 · Wed 9.0
+
+Records can be changed later only on the day they were written, so check them now.
+
+These are exactly what will be written. Write them?
+```
+
+- One row per date, per project, per Activity Type, with hours from the deduplicated timeline. The Activity Type is its own column so it can be corrected before anything is written. Notes are what Step 6 will write.
+- When calendar hours exceed record hours because of overlap, put both in the day totals ("Mon 8.0 (9.5 on the calendar)").
+- For a date that already had records, show the reconciliation from Step 1 under the table: booked, supported, proposed.
+- *Week to date* includes this run. Leave *Allocation* blank for a project with none.
+
+Then stop and wait. If the user changes a row, show the whole table again before writing. If a calendar write in Stage 1 failed partway, say which events landed before showing this stage.
 
 ## Step 5: Write the calendar events
 
-Title format: `<project label>: <what they did>`, using the profile's `label`. Describe the work itself in the description and mark after-hours or weekend blocks as such.
+Title format: `<project label>: <what they did>`, using the profile's `label`. Describe the work itself in the description and mark after-hours or weekend blocks as such. When the project has a `color_id`, pass it as the event's `colorId` so new events match the user's own color-coding.
 
 **Wording rule, important.** These records are read by other people. Never reference how the work was reconstructed. No mention of Claude, an LLM, AI tooling, prompts, sessions, transcripts, chat, or commits, and never the word "reconstructed." Describe what the user decided, built, or reviewed, in their voice, as ordinary work notes. The same rule applies to time record notes. Naming Slack as the medium is fine when the conversation was the work ("worked through cutover questions with the team in Slack"); saying that Slack, or anything else, was searched is not. Set `availability: AVAILABILITY_FREE` so historical availability is untouched. Create only where the calendar has nothing for that activity already; an event may overlap an existing one under the *Overlapping sources* rule, and never duplicates one.
 
@@ -243,7 +311,9 @@ Title format: `<project label>: <what they did>`, using the profile's `label`. D
 
 ## Step 6: Write the time records
 
-One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row come from the deduplicated timeline in Step 3, not from the summed length of the calendar events. Write each payload to a temporary file and insert one at a time so the org's flows fire the way they do from the UI. A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined.
+Write exactly the rows the user approved in Stage 2: same dates, projects, Activity Types, hours, and notes. Never recompute hours, merge rows, or adjust anything between the approval and the insert. If something has to change (a picklist value is rejected, a record turns out to exist already), stop, show the changed rows and ask again before writing them.
+
+One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row come from the deduplicated timeline in Step 3, not from the summed length of the calendar events. Write each payload to a temporary file and insert one at a time so the org's flows fire the way they do from the UI. Each insert takes several seconds, so keep the user informed: after every few records, print one line such as "12 of <total> written", and finish with "All <total> written." A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined.
 
 ### Choosing the Activity Type
 
@@ -284,7 +354,8 @@ Report record names, day totals, and anything still unaccounted for.
 
 Run this right after Step 7, on every run that wrote at least one time record. It never waits for the user to ask for a report. time-report is installed beside this skill; its script is `../time-report/time_report.py` from this folder. Run Python as python3 on a Mac, and as py -3 on Windows (or python if that is the one that prints a Python 3 version).
 
-- **Local dashboard, inline.** Run `time_report.py week --dashboard` and give the user the `file://` link the script prints. It takes seconds. Do not open the browser; that is time-report's job when they ask.
+- **Local dashboard, inline.** Run `time_report.py week --dashboard`, then open the file it wrote in the system browser, not a browser inside the agent app: `open "<path>"` on a Mac; on Windows, `Start-Process "<path>"` in PowerShell, or `start "" "<path>"` in cmd or Git Bash. Also give the `file://` link the script prints, in case the browser didn't open. It takes seconds.
+- **Salesforce dashboard, as a link.** Look up *My Hours - Dashboard 2.0* with the *time dashboard* query in the reference, and give the link built from the org's `instanceUrl` (from `sf org display -o <alias> --json`): `<instanceUrl>/lightning/r/Dashboard/<Id>/view`. Say it's the company's own view of the same records, and that its Refresh button updates it. If the query finds nothing, leave the link out without comment.
 - **Published dashboard, in the background.** Only when the profile has `dashboard.artifact_url`. Launch one background agent (the Agent tool) on a small, fast model, passing the model explicitly; the work is mechanical. Brief it with the artifact URL, the user's name, and the *Published dashboard* procedure in time-report's `SKILL.md`, which it follows step by step. Do not wait for it: finish the Step 7 report, and pass on its one-line result when it arrives. If it fails, say so, with what failed; the time records are already written and correct either way.
 
 If either refresh lists *Forecast left out*, mention it in one line. If the Artifact tools are not available in the session, skip the published refresh and say so.

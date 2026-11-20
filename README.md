@@ -2,6 +2,8 @@
 
 Two skills for Claude Code and Codex that log your TaskRay time from what you actually did. They share one profile, and nothing is written until you approve it.
 
+**To install, agents included:** download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow it. Don't clone the repo or build zips; the [quick start](#quick-start) is the whole install.
+
 | Skill | What it does | Writes? |
 | --- | --- | --- |
 | `log-time` | Finds the days you haven't logged, rebuilds the work from your calendar, Slack and work evidence, and creates calendar events and TaskRay time records in Kicksaw-Prod after you approve a proposal | Yes, after your approval |
@@ -101,7 +103,7 @@ It works on a Mac or on Windows. The agent checks what's already set up, asks on
 
 ### For technical users
 
-The commands below install by hand. The two skills install together. `time-report` reads the profile `log-time` creates, so `--skill '*'` in the commands below is deliberate. These need the Salesforce CLI signed in already (`sf org login web -a Kicksaw-Prod`).
+The commands below install by hand. The two skills install together. `time-report` reads the profile `log-time` creates, so `--skill '*'` in the commands below is deliberate. These need the Salesforce CLI signed in already (`sf org login web -a Kicksaw-Prod --instance-url https://kicksaw.my.salesforce.com`).
 
 #### Claude Code, global
 
@@ -184,7 +186,17 @@ If you already have `/log-time` or `/time-report` commands in `~/.claude/command
 
 ## First run
 
-The quick start begins this for you. Otherwise, say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). Last, you pick your work hours and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
+The quick start begins this for you. Otherwise, say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). It asks whether you color-code projects on your calendar and whether you use Google Tasks. Last, you pick your work hours and timezone, and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
+
+## How a run goes
+
+1. Fill your calendar gaps first with anything it can't see, like a phone call or a Google Task.
+2. Say "log my time" with no date. It starts from your last record.
+3. Approve the calendar events. Answer the questions it lists, then let it write your calendar.
+4. Check your calendar, fix anything that looks off, and tell it what changed.
+5. Approve the time records. They're written exactly as shown, and can only be changed on the day they were written.
+6. Talk through the unaccounted time, and it adds what you tell it.
+7. Your dashboard opens in your browser, with a link to My Hours - Dashboard 2.0 in Salesforce, which shows the same records.
 
 ## Files
 

@@ -169,10 +169,10 @@ If `winget` isn't available, download `python-<version>-amd64.exe` from `https:/
 
 If it fails and there is no profile yet, run `sf org list --json`. If other orgs are signed in, offer them as options ("Is one of these your Kicksaw login?"), with "Sign in fresh" as the first option. Use the one they pick as `<alias>` for the rest of this step; log-time's setup saves it to the profile. With a profile, keep its `org_alias`.
 
-**Fix.** Say "Your browser will open to the Salesforce sign-in. Sign in with your Kicksaw Salesforce login, then come back here." Then run this with a 10-minute timeout, since it waits until the browser sign-in finishes (the same command on macOS and Windows (PowerShell); use the full `sf` path from step 4 if needed):
+**Fix.** Say "Your browser will open to Kicksaw's Salesforce sign-in page. Sign in on the tab that opens, with your Kicksaw login, then come back here. If no tab opens, or you closed it, tell me and I'll open it again." Then run this with a 10-minute timeout, since it waits until the browser sign-in finishes (the same command on macOS and Windows (PowerShell); use the full `sf` path from step 4 if needed):
 
 ```
-sf org login web -a <alias> --instance-url https://login.salesforce.com
+sf org login web -a <alias> --instance-url https://kicksaw.my.salesforce.com
 ```
 
 **Check again** with `sf org display user -o <alias> --json`.

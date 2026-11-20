@@ -10,6 +10,19 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.19.0 (2026-11-20)
+
+Changes from the first two teammate setups, one on Windows.
+
+- **Two approvals, calendar first.** log-time proposes the calendar events, writes them once approved, and waits for the user to check their calendar before it proposes time records. Both proposals follow fixed templates, so every user sees the same layout.
+- **Records are written exactly as approved.** Nothing is recomputed between the approval and the insert; any change is shown and asked again. Progress prints while records go in.
+- **Setup asks for the timezone**, defaulting to the computer's, not the Salesforce user setting. It also asks whether the user color-codes projects (new events get the project's color, and colors help place events) and whether they use Google Tasks, which the calendar connector can't see.
+- **Plainer setup questions.** Labels, the internal project and multiple live tasks each get a one-line reason.
+- **An old last record asks for a range.** When the last record is more than 14 days back, log-time asks where to start.
+- **Dashboards.** After a run, the local dashboard opens in the system browser, and the link to My Hours - Dashboard 2.0 in Salesforce is given. time-report does the same.
+- **Sign-in on the Kicksaw domain.** SETUP.md signs in at kicksaw.my.salesforce.com and tells the user to use the tab that opens.
+- **Docs.** The README opens with the install line for agents, so pasting the repo link starts guided setup. The README and the guide add "How a run goes" and where the Code tab is.
+
 ## 1.18.0 (2026-11-20)
 
 **Guided setup.** Paste one line into Claude desktop's Code tab or Codex and the agent sets everything up, on a Mac or on Windows:

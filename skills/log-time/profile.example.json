@@ -10,7 +10,8 @@
     "workday_start": "08:30",
     "workday_end": "17:00",
     "timezone": "America/New_York",
-    "calendar_account": "first.last@example.com"
+    "calendar_account": "first.last@example.com",
+    "uses_google_tasks": false
   },
   "baseline_hours_per_week": 40,
   "resource_hero": {
@@ -42,7 +43,8 @@
         { "id": "<channel Id>", "name": "internal_clienta", "client_facing": false },
         { "id": "<channel Id>", "name": "kicksaw_clienta", "client_facing": true }
       ],
-      "rh_assignment_id": "<assignment Id>"
+      "rh_assignment_id": "<assignment Id>",
+      "color_id": "7"
     }
   ],
   "internal": {

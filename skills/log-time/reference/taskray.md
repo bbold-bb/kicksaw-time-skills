@@ -90,6 +90,12 @@ SELECT Id, Name, TASKRAY__Date__c, TASKRAY__Project__c, TASKRAY__Project__r.Name
 SELECT Name, TASKRAY__Date__c, TASKRAY__Project__r.Name, Activity_Type__c, TASKRAY__Hours__c, Monthly_Billing_Summary__c, Pay_Period__c, Owner_Role__c FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND CreatedDate = TODAY ORDER BY TASKRAY__Date__c
 ```
 
+**Time dashboard** (Step 8 link; the company's Salesforce dashboard of the same records):
+
+```
+SELECT Id FROM Dashboard WHERE Title = 'My Hours - Dashboard 2.0' LIMIT 1
+```
+
 ## Record types on the time record
 
 | Record type | Developer name | Use |
