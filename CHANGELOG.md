@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.19.1 (2026-11-20)
+
+- **Existing profiles answer the new questions once.** A profile saved before 1.19.0 is asked about calendar colors, Google Tasks and the timezone on its next run, then never again.
+
 ## 1.19.0 (2026-11-20)
 
 Changes from the first two teammate setups, one on Windows.
