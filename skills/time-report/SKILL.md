@@ -1,6 +1,6 @@
 ---
 name: time-report
-version: 1.19.3
+version: 1.19.4
 description: Use when a Kicksaw consultant asks how much time they have logged, whether they are on pace for the week or month, or which projects their hours went to. Read-only; pairs with log-time, which writes.
 argument-hint: "[week | last-week | month | last-month | YYYY-MM | YYYY-MM-DD | start end] [--dashboard] (default: week)"
 ---
@@ -62,7 +62,7 @@ Some users also keep a published dashboard on claude.ai, a Dashboard artifact wh
 | `time-records.json` | `time_records` | date, project, activity, hours, billable |
 | `allocation.json` | `allocation` | date, project, hours of Resource Hero forecast |
 | `days-off.json` | `days_off` | date, reason, from the profile's holidays |
-| `run-info.json` | `run_info` | the window, the baseline, and any forecast left out |
+| `run-info.json` | `run_info` | the window, the baseline, any forecast left out, and pipeline staffing |
 
 To refresh it:
 
@@ -71,7 +71,7 @@ To refresh it:
 3. Upload each file to the artifact as an asset (Artifact `publish` with `url`, `asset: true`, `file_path`; one JSON file per call). Each upload returns a new `/_blob/<id>` url.
 4. In one ArtifactData `batch`, `update` each dataset with `if_version` set to the version read in step 2: `source` with the new `url` (keep `kind`, `name` and `format`) and `updated: {at: <the output of date -u +%Y-%m-%dT%H:%M:%SZ>, by: "Claude for <user's name>"}`. Read the time from the clock; never estimate it.
 5. Delete each replaced asset (Artifact `delete` with `url` and the old blob id as `path`), so uploads do not pile up.
-6. Report one line: the artifact link, the window covered, and the forecast left out, if any.
+6. Report one line: the artifact link, the window covered, and the forecast left out and pipeline staffing, if any.
 
 ## What to say back
 
@@ -80,6 +80,7 @@ Print the script's table, then add the reading. Do not just dump the output.
 - **Report against allocation, not just the total.** When the profile has `resource_hero.use_for_allocations`, the script prints an *Against allocation* block: hours logged versus hours staffed, per project. The total tells them whether they worked a full week; this tells them whether they worked it on the right things. A project well under its allocation while another is well over is the finding, even when the total lands exactly on 40.
 - **A client project with hours but no allocation** prints as `no allocation`. That means no Resource Hero forecast inside an assignment's dates covers the period. It usually means the staffing has not been set up yet or the engagement is winding down. Say it plainly and ask; never treat it as zero allocation and report a large overage.
 - **Forecast left out.** Allocation counts every Resource Hero assignment the user has, archived ones included, but only forecast dated inside each assignment's start and end dates. Rows outside those dates are usually left over from an assignment whose dates moved. The script lists them under *Forecast left out*. Name them, say they were not counted, and offer to draft a note to whoever manages Resource Hero staffing (or the user's supervisor) asking for the dates or the forecast to be fixed.
+- **Pipeline staffing.** An assignment whose related record is an Opportunity, not a Resource Hero project, is staffing for a deal that has no project yet. Its forecast is never counted as allocation, because there is nothing to log against and it would add to the staffing on the project that does exist. The script lists it under *Pipeline staffing*. Say it was not counted. It is not an error: don't offer a note about it unless the user asks.
 - **Time off** (holiday and PTO assignments) is never compared with logged hours.
 
 - **Lead with the total and how it compares** to the expected line the script prints. Expected is the profile's weekly baseline spread over the weekdays that have already passed, less every holiday in the period. Say whether they are ahead or behind.

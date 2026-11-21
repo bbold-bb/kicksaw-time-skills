@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.19.4 (2026-11-21)
+
+- **Pipeline staffing is no longer counted as allocation.** A Resource Hero assignment on an Opportunity, rather than on a project, is staffing for a deal that has no project yet. time-report used to add its forecast to allocation, which could count the same hours twice once the project had its own assignment. It now lists that forecast on its own line, *Pipeline staffing*, and leaves it out of allocation, pace and the published dashboard's data (`run-info.json` carries it as `pipeline_left_out`).
+
 ## 1.19.3 (2026-11-20)
 
 - **Google Tasks from a screenshot.** A Tasks user can paste a screenshot of their calendar with tasks showing; log-time reads each task's title, day and time and proposes it as an event in the matching gap.

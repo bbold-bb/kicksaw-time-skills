@@ -22,6 +22,8 @@ A full-time assignment at half a person's week shows as `Forecast__c = 4` on eac
 
 **Do not read allocation off the assignment record.** `ResourceHeroApp__Auto_Forecast_Hours__c` and `ResourceHeroApp__Remaining_Forecast_Hours__c` on the parent do not reconcile against the summed detail rows, and their meaning is not documented. The forecast rows are the source of truth.
 
+**Count only assignments on a Resource Hero project.** An assignment points at one related record, and `ResourceHeroApp__Related_Record_Type__c` says which kind: `RH Project` or `Opportunity`. An Opportunity assignment is pipeline staffing, for a deal with no project yet, and has no TaskRay project to log against. When the deal turns into work, the project gets its own assignment, and the Opportunity one may be archived with its forecast still in place, so counting both adds the same hours twice. `ResourceHeroApp__Related_Record__c` holds the record's name as an HTML link. Neither `Archive` nor `Staffing_Status__c` tells the two apart: archived project assignments are real past staffing, and the status is blank or Open on both kinds.
+
 **Never use Resource Hero's actuals.** `Actual__c` is synced from time records on a lag and was observed a full week behind on a live org. Actuals always come from `TASKRAY__trTaskTime__c`. Resource Hero is read for the forecast side only.
 
 ## Queries

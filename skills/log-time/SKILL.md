@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.19.3
+version: 1.19.4
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -374,7 +374,7 @@ Run this right after Step 7, on every run that wrote at least one time record. I
 - **Salesforce dashboard, as a link.** Look up *My Hours - Dashboard 2.0* with the *time dashboard* query in the reference, and give the link built from the org's `instanceUrl` (from `sf org display -o <alias> --json`): `<instanceUrl>/lightning/r/Dashboard/<Id>/view`. Say it's the company's own view of the same records, and that its Refresh button updates it. If the query finds nothing, leave the link out without comment.
 - **Published dashboard, in the background.** Only when the profile has `dashboard.artifact_url`. Launch one background agent (the Agent tool) on a small, fast model, passing the model explicitly; the work is mechanical. Brief it with the artifact URL, the user's name, and the *Published dashboard* procedure in time-report's `SKILL.md`, which it follows step by step. Do not wait for it: finish the Step 7 report, and pass on its one-line result when it arrives. If it fails, say so, with what failed; the time records are already written and correct either way.
 
-If either refresh lists *Forecast left out*, mention it in one line. If the Artifact tools are not available in the session, skip the published refresh and say so.
+If either refresh lists *Forecast left out* or *Pipeline staffing*, mention each in one line. If the Artifact tools are not available in the session, skip the published refresh and say so.
 
 ## Standing conventions
 
