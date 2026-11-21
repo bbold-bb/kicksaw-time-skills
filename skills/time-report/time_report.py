@@ -25,9 +25,11 @@ months ahead. The period is ignored. Default: ~/.claude/kicksaw-time/dashboard-d
 
 import argparse
 import datetime as dt
+import html
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -187,10 +189,20 @@ def sf_query(profile, soql):
     return json.loads(out.stdout)["result"]["records"]
 
 
+def related_name(html_link):
+    """The record name inside Resource Hero's Related Record link, which comes back as an HTML anchor."""
+    return html.unescape(re.sub(r"<[^>]+>", "", html_link or "")).strip() or None
+
+
 def fetch_assignments(profile, labels):
     """Every Resource Hero assignment for the user, archived ones included, so past months keep their staffing.
 
-    Returns {assignment id: {label, name, start, end}}. A label comes from, in
+    An assignment whose related record is an Opportunity is pipeline: staffing
+    for a deal that has no project yet. It is returned with pipeline=True and
+    labeled with the Opportunity's name, and fetch_allocation_days keeps it out
+    of allocation.
+
+    Returns {assignment id: {label, name, start, end, pipeline}}. A label comes from, in
     order: the profile project that names the assignment, the profile's
     resource_hero.assignment_labels map, Time off for holiday and PTO
     assignments, then the Resource Hero project name shortened like a TaskRay
@@ -208,7 +220,8 @@ def fetch_assignments(profile, labels):
         return {}
     records = sf_query(profile, (
         "SELECT Id, Name, ResourceHeroApp__RH_Project__r.Name, ResourceHeroApp__Start_Date__c, "
-        "ResourceHeroApp__End_Date__c, ResourceHeroApp__Is_Holiday_Time__c, ResourceHeroApp__Is_Time_Off_PTO__c "
+        "ResourceHeroApp__End_Date__c, ResourceHeroApp__Is_Holiday_Time__c, ResourceHeroApp__Is_Time_Off_PTO__c, "
+        "ResourceHeroApp__Related_Record_Type__c, ResourceHeroApp__Related_Record__c "
         f"FROM ResourceHeroApp__Resource_Assignment__c WHERE {where}"
     ))
     if records is None:
@@ -216,7 +229,11 @@ def fetch_assignments(profile, labels):
     out = {}
     for r in records:
         project = (r.get("ResourceHeroApp__RH_Project__r") or {}).get("Name")
-        if r["Id"] in named:
+        pipeline = r.get("ResourceHeroApp__Related_Record_Type__c") == "Opportunity"
+        if pipeline:
+            project = related_name(r.get("ResourceHeroApp__Related_Record__c"))
+            label = project or r["Name"]
+        elif r["Id"] in named:
             label = named[r["Id"]]
         elif r["ResourceHeroApp__Is_Holiday_Time__c"] or r["ResourceHeroApp__Is_Time_Off_PTO__c"]:
             label = TIME_OFF
@@ -229,11 +246,12 @@ def fetch_assignments(profile, labels):
             "name": project or r["Name"],
             "start": r["ResourceHeroApp__Start_Date__c"],
             "end": r["ResourceHeroApp__End_Date__c"],
+            "pipeline": pipeline,
         }
     return out
 
 
-def fetch_allocation_days(profile, start, end, ignored=None):
+def fetch_allocation_days(profile, start, end, ignored=None, pipeline=None):
     """Allocated hours per label per day for the period, from Resource Hero.
 
     Forecast rows are one per day, with forecast and actual on separate rows, so
@@ -246,6 +264,11 @@ def fetch_allocation_days(profile, start, end, ignored=None):
     counted: it is usually left over from an assignment whose dates moved. Pass
     a list as `ignored` to get one entry per assignment that had such rows, so
     the caller can say what was left out.
+
+    Forecast on a pipeline assignment (one on an Opportunity) is never counted:
+    the deal has no project to log against, and it would add to the staffing on
+    the project that does. Pass a list as `pipeline` to get one entry per such
+    assignment with its hours in the period.
     """
     if not allocations_enabled(profile):
         return {}
@@ -270,10 +293,16 @@ def fetch_allocation_days(profile, start, end, ignored=None):
         return {}
     days = defaultdict(lambda: defaultdict(float))
     outside = {}
+    deals = {}
     for r in records:
         a = assignments[r["ResourceHeroApp__Resource_Assignment__c"]]
         day, fc = r["ResourceHeroApp__ForecastDate__c"], r.get("fc")
         if not fc:
+            continue
+        if a.get("pipeline"):
+            o = deals.setdefault(r["ResourceHeroApp__Resource_Assignment__c"], dict(a, hours=0.0, first=day, last=day))
+            o["hours"] += fc
+            o["first"], o["last"] = min(o["first"], day), max(o["last"], day)
             continue
         if (a["start"] and day < a["start"]) or (a["end"] and day > a["end"]):
             o = outside.setdefault(r["ResourceHeroApp__Resource_Assignment__c"], dict(a, hours=0.0, first=day, last=day))
@@ -283,6 +312,8 @@ def fetch_allocation_days(profile, start, end, ignored=None):
         days[a["label"]][day] += fc
     if ignored is not None:
         ignored.extend(sorted(outside.values(), key=lambda o: o["first"]))
+    if pipeline is not None:
+        pipeline.extend(sorted(deals.values(), key=lambda o: o["first"]))
     return {label: dict(per_day) for label, per_day in days.items()}
 
 
@@ -294,6 +325,14 @@ def print_ignored(ignored):
         window = f"{o['start'] or 'open'} to {o['end'] or 'open'}"
         print(f"  {o['label']}: {o['hours']:g}h on {o['first']} to {o['last']} (assignment runs {window})")
     print("  Ask whoever manages Resource Hero staffing to fix the dates or the forecast.")
+
+
+def print_pipeline(pipeline):
+    if not pipeline:
+        return
+    print("\n  Pipeline staffing: forecast on an Opportunity, not counted as allocation")
+    for o in pipeline:
+        print(f"  {o['label']}: {o['hours']:g}h on {o['first']} to {o['last']}")
 
 
 def fetch_allocations(profile, start, end):
@@ -415,12 +454,12 @@ def export_window(profile, today):
 
 
 def write_data(out_dir, profile, labels, today):
-    """Write the four JSON files a published dashboard reads, and return (out_dir, ignored).
+    """Write the four JSON files a published dashboard reads, and return (out_dir, ignored, pipeline).
 
     time-records.json  one row per time record: date, project, activity, hours, billable
     allocation.json    Resource Hero forecast per day per label, inside assignment dates
     days-off.json      the profile's holidays
-    run-info.json      the window, the baseline, and any forecast left out
+    run-info.json      the window, the baseline, any forecast left out, and pipeline staffing
     """
     start, alloc_end = export_window(profile, today)
     records = fetch(profile, start, today)
@@ -431,8 +470,8 @@ def write_data(out_dir, profile, labels, today):
         "hours": r["TASKRAY__Hours__c"] or 0,
         "billable": bool(r["TASKRAY__Billable__c"]),
     } for r in records), key=lambda r: (r["date"], r["project"]))
-    ignored = []
-    alloc = fetch_allocation_days(profile, start.isoformat(), alloc_end.isoformat(), ignored)
+    ignored, pipeline = [], []
+    alloc = fetch_allocation_days(profile, start.isoformat(), alloc_end.isoformat(), ignored, pipeline)
     alloc_rows = sorted(({"date": d, "project": label, "hours": round(h, 2)}
                          for label, per_day in alloc.items() for d, h in per_day.items()),
                         key=lambda r: (r["date"], r["project"]))
@@ -445,6 +484,8 @@ def write_data(out_dir, profile, labels, today):
         "org": profile["org_alias"],
         "forecast_left_out": [{"project": o["label"], "hours": o["hours"], "from": o["first"], "to": o["last"],
                                "assignment_start": o["start"], "assignment_end": o["end"]} for o in ignored],
+        "pipeline_left_out": [{"project": o["label"], "hours": o["hours"], "from": o["first"], "to": o["last"],
+                               "assignment_start": o["start"], "assignment_end": o["end"]} for o in pipeline],
     }]
     out_dir = os.path.expanduser(out_dir)
     os.makedirs(out_dir, exist_ok=True)
@@ -452,7 +493,7 @@ def write_data(out_dir, profile, labels, today):
                        ("days-off.json", days_off), ("run-info.json", info)]:
         with open(os.path.join(out_dir, name), "w", encoding="utf-8") as fh:
             json.dump(data, fh)
-    return out_dir, ignored
+    return out_dir, ignored, pipeline
 
 
 def bar(value, peak, width=22):
@@ -483,17 +524,18 @@ def main():
     today = dt.date.today()
 
     if args.export_data:
-        out_dir, ignored = write_data(args.export_data, profile, labels, today)
+        out_dir, ignored, pipeline = write_data(args.export_data, profile, labels, today)
         print(f"Dashboard data written: {out_dir}")
         for name in ("time-records.json", "allocation.json", "days-off.json", "run-info.json"):
             print(f"  {os.path.join(out_dir, name)}")
         print_ignored(ignored)
+        print_pipeline(pipeline)
         return
 
     start, end, label = resolve(args.period)
     records = fetch(profile, start, end)
-    ignored = []
-    alloc_days = fetch_allocation_days(profile, start.isoformat(), end.isoformat(), ignored)
+    ignored, pipeline = [], []
+    alloc_days = fetch_allocation_days(profile, start.isoformat(), end.isoformat(), ignored, pipeline)
 
     if args.dashboard:
         out = write_dashboard(args.dashboard, profile, labels, records, alloc_days, start, end, label, today)
@@ -582,6 +624,7 @@ def main():
         for l in unstaffed:
             print(f"  {l.ljust(wl)}{per_project[l]:>6g}h logged / no allocation")
     print_ignored(ignored)
+    print_pipeline(pipeline)
 
     if args.by_day:
         print("\nBy day")
