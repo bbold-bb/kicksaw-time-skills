@@ -1,6 +1,6 @@
 ---
 name: time-report
-version: 1.20.3
+version: 1.20.4
 description: Use when a Kicksaw consultant asks how much time they have logged, whether they are on pace for the week or month, or which projects their hours went to. Read-only; pairs with log-time, which writes.
 argument-hint: "[week | last-week | month | last-month | YYYY-MM | YYYY-MM-DD | start end] [--dashboard] (default: week)"
 ---

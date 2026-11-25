@@ -45,10 +45,10 @@ More than one can be open at once (an old period's copy is often left open). Off
 SELECT TASKRAY__Project__c, TASKRAY__Project__r.Name, MAX(TASKRAY__Date__c), COUNT(Id) FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND TASKRAY__Date__c = LAST_N_DAYS:90 GROUP BY TASKRAY__Project__c, TASKRAY__Project__r.Name ORDER BY MAX(TASKRAY__Date__c) DESC
 ```
 
-**Live task for a project.** A project's time-entry task is its unarchived task. When a task rolls over, the old one is archived and a new one is added, so only the newest is live. The org accepts inserts against an archived task silently, so always resolve by the archived flag, never by remembering an Id. Use the project's only unarchived task, whatever its name, and show its name. Zero or several is the same as no live task: show them and ask, and save the one picked.
+**Live task for a project.** A project's time-entry task is its unarchived task. When a task rolls over, the old one is archived and a new one is added, so only the newest is live. The org accepts inserts against an archived task silently, so always resolve by the archived flag, never by remembering an Id. Use the project's only unarchived task, whatever its name, and show its name. On a client project, zero or several is the same as no live task: show them and ask, and save the one picked. **The internal project** never asks: an old task is often left open after the next one is added, so take the newest (the first row). Ask only when there are none.
 
 ```
-SELECT Id, Name, TASKRAY__Project__c FROM TASKRAY__Project_Task__c WHERE TASKRAY__Project__c = '<project_id>' AND TASKRAY__Archived__c = false
+SELECT Id, Name, TASKRAY__Project__c FROM TASKRAY__Project_Task__c WHERE TASKRAY__Project__c = '<project_id>' AND TASKRAY__Archived__c = false ORDER BY CreatedDate DESC
 ```
 
 **Drift check, tasks** (all the profile's task Ids in one call):
