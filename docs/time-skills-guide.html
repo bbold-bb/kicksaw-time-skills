@@ -80,7 +80,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .chg p { font-size: .93rem; }
 .chg .fb { justify-self: start; margin-left: 0; }
 .fb { display: inline-block; margin-left: 6px; font-family: var(--head); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--cyan-tint); color: var(--navy); border: 1px solid var(--cyan); vertical-align: 2px; }
-.next { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.next { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 .next div { border: 1px dashed var(--blue); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
 .next b { font-family: var(--head); color: var(--navy); }
 .next span { font-size: .95rem; }
@@ -368,19 +368,19 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <div class="grp">
         <div class="grp-label">Logging your time</div>
         <div class="changes">
-          <div class="chg"><b>Always the newest internal task <span class="v">(1.20.5)</span></b><p>Every run checks for the newest place to log internal time, moves you to it, and tells you in one line.</p></div>
-          <div class="chg"><b>Checked before it's written <span class="v">(1.20.3)</span></b><p>Every record needs a task, a date and time on it. If one is missing, you're asked for it.</p></div>
-          <div class="chg"><b>Better meeting notes <span class="v">(1.20.0)</span></b><p>Summaries from Notion and Wispr Flow make notes specific. Hours still come from your calendar. tl;dv, Zoom, ZoomInfo and Plaud aren't read yet.</p></div>
-          <div class="chg"><b>Unclear time fits your job <span class="v">(1.20.0)</span></b><p>For project managers it becomes Communications, for writers Documentation, instead of always Coding and Configuration.</p></div>
+          <div class="chg"><b>Current internal task <span class="v">(1.20.5)</span></b><p>Each run uses the newest internal task and tells you if it changed.</p></div>
+          <div class="chg"><b>Checked before it's written <span class="v">(1.20.3)</span></b><p>A quick check for a task, a date and hours before a record goes in.</p></div>
+          <div class="chg"><b>Better meeting notes <span class="v">(1.20.0)</span></b><p>Meeting summaries from Notion and Wispr Flow can add detail to your notes.</p></div>
+          <div class="chg"><b>Activity types that fit your work <span class="v">(1.20.0)</span></b><p>When a block could be more than one type, your setup answers help pick it.</p></div>
         </div>
       </div>
       <div class="grp">
         <div class="grp-label">Setup</div>
         <div class="changes">
-          <div class="chg"><b>Your internal task is picked for you <span class="v">(1.20.4)</span></b><p>Setup finds the newest place to log internal time and uses it, so you're not asked to choose.</p></div>
-          <div class="chg"><b>Flux is out <span class="v">(1.20.1)</span></b><p>Setup no longer looks for a Flux resource, so it can't stop you. Your time records go in without one.</p></div>
-          <div class="chg"><b>How you work <span class="v">(1.20.0)</span></b><p>A few clicks on what fills your week and what leaves no trace. Already set up? Your next run asks once.</p></div>
-          <div class="chg"><b>Your meetings <span class="v">(1.20.0)</span></b><p>Say where your meetings are recorded. Personal recordings are never shown or used.</p></div>
+          <div class="chg"><b>Internal task found for you <span class="v">(1.20.4)</span></b><p>Setup finds the internal task to use, with one less question.</p></div>
+          <div class="chg"><b>Flux removed from setup <span class="v">(1.20.1)</span></b><p>One less lookup when you set up.</p></div>
+          <div class="chg"><b>How you work <span class="v">(1.20.0)</span></b><p>A few questions about your week. Already set up? Your next run asks once.</p></div>
+          <div class="chg"><b>Your meetings <span class="v">(1.20.0)</span></b><p>Tell setup where your meetings are recorded, and whether personal recordings are kept there too.</p></div>
         </div>
       </div>
       </div>
@@ -391,7 +391,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <div class="grp">
         <div class="grp-label">Your time report</div>
         <div class="changes">
-          <div class="chg"><b>Pipeline staffing kept apart <span class="v">(1.19.4)</span></b><p>Staffing on a deal that isn't a project yet no longer counts toward your allocation, so the same hours can't show up twice. It's listed on its own line instead.</p></div>
+          <div class="chg"><b>Pipeline staffing kept apart <span class="v">(1.19.4)</span></b><p>Staffing on a deal that isn't a project yet is listed on its own line, apart from your allocation.</p></div>
         </div>
       </div>
       </div>
@@ -415,10 +415,10 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
           <div class="chg team"><span class="fb">From team feedback</span><b>A color for each new project <span class="v">(1.19.2)</span></b><p>If you color-code your calendar, a newly added project asks for its color, offering ones you're not using yet.</p></div>
           <div class="chg team"><span class="fb">From team feedback</span><b>Google Tasks <span class="v">(1.19.2)</span></b><p>If you use Tasks, the run asks whether any open time was a task you worked on.</p></div>
           <div class="chg team"><span class="fb">From team feedback</span><b>Asked once <span class="v">(1.19.1)</span></b><p>Your next run asks about calendar colors, Google Tasks and your timezone. Change any answer later by asking.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>Your timezone <span class="v">(1.19.0)</span></b><p>Defaults to your computer's timezone, not the Salesforce setting.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Your timezone <span class="v">(1.19.0)</span></b><p>Defaults to your computer's timezone.</p></div>
           <div class="chg team"><span class="fb">From team feedback</span><b>Calendar colors and Tasks <span class="v">(1.19.0)</span></b><p>New events match your project colors, and the run asks whether any open time was a Google Task.</p></div>
           <div class="chg team"><span class="fb">From team feedback</span><b>Easier sign-in <span class="v">(1.19.0)</span></b><p>Opens Kicksaw's own Salesforce sign-in page.</p></div>
-          <div class="chg"><b>Guided setup <span class="v">(1.18.0)</span></b><p>Paste the setup line and Claude installs everything, signs you in, and starts setup.</p></div>
+          <div class="chg"><b>Guided setup <span class="v">(1.18.0)</span></b><p>Paste the setup line and it walks you through installing, signing in and setup.</p></div>
           <div class="chg"><b>Works on Windows <span class="v">(1.18.0)</span></b><p>Setup, logging and reports run on Windows as well as on a Mac.</p></div>
         </div>
       </div>
@@ -443,6 +443,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <div><b>Work done in Salesforce</b><span>Find configuration you built directly in an org, like flows and fields, so it shows up as time.</span></div>
       <div><b>A morning run</b><span>Run log-time on a schedule, so you start the day with yesterday's questions waiting.</span></div>
       <div><b>Codex on Windows</b><span>Test and support Codex on Windows the way Claude Code is today.</span></div>
+      <div><b>More meeting tools</b><span>Use meeting summaries from tl;dv, Zoom, ZoomInfo and Plaud, alongside Notion and Wispr Flow.</span></div>
     </div>
     <p class="note" style="margin-top:28px"><b>Have an idea or hit a problem?</b> Comment on this page. Feedback that ships shows up here, marked From team feedback.</p>
   </div>
