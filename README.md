@@ -61,6 +61,7 @@ flowchart TB
 What it will and won't do:
 
 - **Never invents work.** A gap with no evidence is listed as unaccounted, and you're asked about it.
+- **No empty records.** A time record with zero or blank hours, or a standard field missing, is never written.
 - **Adds, doesn't edit.** Past days get a second record. Only a record created today is merged in place.
 - **Notes read like yours.** Time records and calendar events never mention Claude, Codex, AI, sessions or how they were built.
 - **Only writes where it should.** Kicksaw-Prod time records and your calendar. Every other org, repo and Slack stays read-only.
@@ -211,6 +212,7 @@ The quick start begins this for you. Otherwise, say `/log-time` (or just "log my
 | `docs/time-skills-guide.html` | One-page visual guide: how a run works, prerequisites, install for Claude Code and Codex, first-run setup, troubleshooting |
 | `skills/log-time/SKILL.md` | The process. Read this to understand what the skill will and will not do |
 | `skills/log-time/reference/taskray.md` | Org-wide record types, picklists, queries, and the insert payload |
+| `skills/log-time/check_record.py` | Checks each time record before it is written |
 | `skills/log-time/reference/meetings.md` | Which meeting recorders the skill reads, and how |
 | `skills/log-time/profile.example.json` | Shape of the per-user profile that setup writes |
 | `~/.claude/kicksaw-time/profile.json` | Your profile. Created by setup, never shipped, and outside the skill folders so updates cannot replace it. Also holds `holidays` and `baseline_hours_per_week`, which both skills use |

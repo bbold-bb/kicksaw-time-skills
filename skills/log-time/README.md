@@ -10,7 +10,7 @@ Reconstructs work you did but never logged, from your Google Calendar, the local
 4. Reads your calendar for those days and finds the gaps.
 5. Fills the gaps from evidence: your Claude Code session transcripts and git commits, attributed to projects by folder, and the Slack messages you sent, attributed by channel. Where your meetings are recorded in Notion or Wispr Flow, the summaries make the notes specific; they never change hours. Overlapping work may share the calendar, but every minute is booked once on the time records.
 6. Shows one proposal: calendar events to add, time records to create, the judgment calls, and the gaps it could not explain. Then it stops.
-7. After you approve, writes the calendar events and the time records, one at a time, and verifies them.
+7. After you approve, writes the calendar events and the time records, one at a time, and verifies them. Each record is checked first: none goes in with zero or blank hours, or with a standard field missing.
 8. Refreshes your dashboards: the local time dashboard for the week, and, if your profile names one under `dashboard.artifact_url`, your published claude.ai dashboard, in the background so you are not kept waiting.
 
 ## First run
@@ -33,6 +33,7 @@ Every 30 days it shows your projects again for you to confirm. It asks sooner wh
 | --- | --- |
 | `SKILL.md` | The process Claude follows. Read it to know exactly what it will and will not do |
 | `reference/taskray.md` | Org-wide record types, picklists, queries, and the insert payload |
+| `check_record.py` | Checks each time record before it is written. Stops zero or blank values |
 | `reference/meetings.md` | Which meeting recorders the skill reads, and how |
 | `profile.example.json` | The shape of your profile |
 | `~/.claude/kicksaw-time/profile.json` | Yours. Created by setup, stored outside this folder so updates cannot replace it. Never share it |
