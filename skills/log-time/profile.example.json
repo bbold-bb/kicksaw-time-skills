@@ -79,12 +79,14 @@
   "work": {
     "main_work": ["managing"],
     "unclear_activity_type": "Communications",
+    "type_checked": "Communications",
     "no_trace": ["planning", "calls"],
     "claude_use": "some",
     "recorders": [
       { "tool": "notion", "connected": true, "work_only": true },
-      { "tool": "zoom", "connected": false, "work_only": true }
-    ]
+      { "tool": "zoom", "connected": false, "work_only": null }
+    ],
+    "not_used": ["wispr_flow"]
   },
   "transcript_root": "~/.claude/projects",
   "repo_roots": [

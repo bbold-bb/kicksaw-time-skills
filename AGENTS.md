@@ -31,7 +31,7 @@ When a skill says to use the option pop-up (`AskUserQuestion`), ask the same que
 ## Writing rules for skill text and docs
 
 - Plain, direct language. Sentence-case headings. No em dashes; use commas, periods or parentheses.
-- Time record notes and calendar events never mention Claude, Codex, AI, sessions, transcripts or how the work was reconstructed (the *Wording rule* in `skills/log-time/SKILL.md`). Keep that rule intact in any edit.
+- Time record notes and calendar events never mention Claude, Codex, AI, sessions, transcripts, recordings or how the work was reconstructed (the *Wording rule* in `skills/log-time/SKILL.md`). Keep that rule intact in any edit.
 - Name things by what the user sees: "time record", "project", "Activity Type", matching the org's labels.
 - Counts and breakdowns go in tables.
 

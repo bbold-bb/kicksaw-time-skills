@@ -190,7 +190,7 @@ If you already have `/log-time` or `/time-report` commands in `~/.claude/command
 
 ## First run
 
-The quick start begins this for you. Otherwise, say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). It asks whether you color-code projects on your calendar and whether you use Google Tasks. Last, you pick your work hours and timezone, and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
+The quick start begins this for you. Otherwise, say `/log-time` (or just "log my time"). With no profile the skill runs setup, and setup is mostly clicks. It reads what it can from the org and your connectors: your user, Flux resource, and timezone, and the projects you are staffed on in Resource Hero or logged to in the last 90 days. You tick the ones to log against, and each project's live time-entry task is found for you. Labels default to the client name. It offers the folders that hold your repos and the Slack channels that match each project, and you tick those too (every channel is resolved live before it is saved, and the skill never posts to Slack). It asks how you work and where your meetings are recorded, and whether you color-code projects on your calendar and whether you use Google Tasks. Last, you pick your work hours and timezone, and save. Folders and channels it can't place are asked about later, on the first run that finds work in them. Review the saved profile it shows you; every field can be edited by hand afterwards.
 
 ## How a run goes
 
@@ -211,6 +211,7 @@ The quick start begins this for you. Otherwise, say `/log-time` (or just "log my
 | `docs/time-skills-guide.html` | One-page visual guide: how a run works, prerequisites, install for Claude Code and Codex, first-run setup, troubleshooting |
 | `skills/log-time/SKILL.md` | The process. Read this to understand what the skill will and will not do |
 | `skills/log-time/reference/taskray.md` | Org-wide record types, picklists, queries, and the insert payload |
+| `skills/log-time/reference/meetings.md` | Which meeting recorders the skill reads, and how |
 | `skills/log-time/profile.example.json` | Shape of the per-user profile that setup writes |
 | `~/.claude/kicksaw-time/profile.json` | Your profile. Created by setup, never shipped, and outside the skill folders so updates cannot replace it. Also holds `holidays` and `baseline_hours_per_week`, which both skills use |
 | `skills/time-report/SKILL.md` | How to run and read the report |

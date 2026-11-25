@@ -86,7 +86,7 @@ With several picked, the one with the most hours in the last 90 days wins. Evide
 | --- | --- | --- |
 | Notion | Yes | Read: list, summary; transcript on request |
 | Wispr Flow | Yes | Read: list, summary, transcript |
-| Plaud | Yes | Read: list only. Holds personal recordings too |
+| Plaud | Yes | Read: list only. Can hold personal recordings |
 | tl;dv | In the connector directory | Not connected, not tried |
 | Zoom | In the connector directory | Not connected, not tried |
 | ZoomInfo (Chorus) | ZoomInfo is in the directory and lists a conversation tool | Not connected; whether it returns Chorus calls is unknown |
@@ -120,4 +120,5 @@ tl;dv, Zoom and ZoomInfo, and the questions with someone who isn't a builder. A 
 
 ## Change Log
 
+- 2026-11-25: tightened in review. A tool that also holds personal recordings needs a matching time and a matching title or attendee. Setup no longer lists recordings to count them. Work-only is asked per tool that is read. Meeting notes gain a topic phrase.
 - 2026-11-25: first draft, after feedback that setup should ask how people work and where their meetings are transcribed.
