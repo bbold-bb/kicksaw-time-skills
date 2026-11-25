@@ -10,6 +10,13 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.20.0 (2026-11-25)
+
+- **Setup asks how you work.** Short pop-ups cover what fills your week, what takes time but leaves no trace, how much goes through Claude, and where your meetings are recorded, plus which project any unlabeled recurring meetings belong to. Answers are saved as `work` in the profile (recurring meetings in `conventions`). Existing profiles are asked once, on the next run.
+- **Unclear blocks fit the person.** A client block whose evidence doesn't settle its Activity Type takes `work.unclear_activity_type`: Communications for someone who manages projects, Documentation for someone who mostly writes, Coding and Configuration otherwise.
+- **Meeting recordings make notes specific.** log-time reads the summary of a Notion or Wispr Flow recording that matches a work meeting. The topics follow the meeting's title in its note. A recording never changes hours and never proves attendance. A tool that also holds personal recordings needs a matching time and a matching title or attendee before anything is opened, and its other recordings are never shown. tl;dv, Zoom, ZoomInfo (Chorus) and Plaud are saved but not read yet. See `skills/log-time/reference/meetings.md`.
+- **Older profiles get their allowed Activity Types.** A profile from before 1.17.0 has the org's picklist values read and saved on its next run.
+
 ## 1.19.4 (2026-11-21)
 
 - **Pipeline staffing is no longer counted as allocation.** A Resource Hero assignment on an Opportunity, rather than on a project, is staffing for a deal that has no project yet. time-report used to add its forecast to allocation, which could count the same hours twice once the project had its own assignment. It now lists that forecast on its own line, *Pipeline staffing*, and leaves it out of allocation, pace and the published dashboard's data (`run-info.json` carries it as `pipeline_left_out`).

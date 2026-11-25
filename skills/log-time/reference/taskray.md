@@ -90,6 +90,16 @@ SELECT Id, Name, TASKRAY__Date__c, TASKRAY__Project__c, TASKRAY__Project__r.Name
 SELECT Name, TASKRAY__Date__c, TASKRAY__Project__r.Name, Activity_Type__c, TASKRAY__Hours__c, Monthly_Billing_Summary__c, Pay_Period__c, Owner_Role__c FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND CreatedDate = TODAY ORDER BY TASKRAY__Date__c
 ```
 
+**Work pattern** (Setup step 8 and the 30-day check: client hours by Activity Type, then the user's latest role, which can't be grouped on):
+
+```
+SELECT Activity_Type__c, SUM(TASKRAY__Hours__c) hours FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND TASKRAY__Date__c = LAST_N_DAYS:90 AND RecordType.DeveloperName = 'Client_Work' GROUP BY Activity_Type__c ORDER BY SUM(TASKRAY__Hours__c) DESC
+```
+
+```
+SELECT Owner_Role__c FROM TASKRAY__trTaskTime__c WHERE TASKRAY__Owner__r.Username = '<username>' AND Owner_Role__c != null ORDER BY TASKRAY__Date__c DESC LIMIT 1
+```
+
 **Time dashboard** (Step 8 link; the company's Salesforce dashboard of the same records). Personal copies can share the title: prefer the one in the shared *Pilot - Time Logging Dashboards* folder, else the newest.
 
 ```
