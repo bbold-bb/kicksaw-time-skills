@@ -10,14 +10,19 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.20.3 (2026-11-25)
+
+- **Only required fields can stop a record.** The org's create layouts require the task, date and hours, so `check_record.py` stops a record only when one of those is blank or hours aren't above zero (or a placeholder was left in). Other blanks, and hours that aren't in quarters, are mentioned and don't stop the write.
+- **Fewer fields sent.** Two flags that match the org's own defaults are no longer sent. The skill no longer states what the org's automation does, since it can't be seen.
+
 ## 1.20.2 (2026-11-25)
 
 - **No zero or blank time records.** log-time runs `check_record.py` on every payload before writing it: hours must be more than zero and in quarter hours, and the project, task, date, owner, record type, time type, Activity Type, billable flag and notes must all be filled (plus category and non-billable reason on internal time). A record that doesn't pass isn't written; the run asks for the missing value.
-- **The hourly rate is left to the org.** log-time used to send 0, which the org replaced. It no longer sends it.
+- **The hourly rate is no longer sent.** log-time used to send 0; the field is read-only on the org's page layouts.
 
 ## 1.20.1 (2026-11-25)
 
-- **Flux is no longer needed.** Setup doesn't look for a Flux resource, and a missing one no longer stops it. Time records are written without a Flux resource or a service line; the org sets the service line from the user's own record, as it does for records entered by hand. Older profiles keep their old fields, which are ignored.
+- **Flux is no longer needed.** Setup doesn't look for a Flux resource, and a missing one no longer stops it. Time records are written without a Flux resource or a service line; the field's help text says the org sets the service line from the user's own record. Older profiles keep their old fields, which are ignored.
 
 ## 1.20.0 (2026-11-25)
 
