@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## Guide groups updates by date (2026-11-25, repo only)
+
+- **One What's new entry per date.** Everything released on a date sits in one entry, grouped by area, with each change's version in parentheses. A release on a date already listed adds to that entry. No skill changes.
+
 ## 1.20.5 (2026-11-25)
 
 - **Internal time moves to the newest open task on every run.** A profile saved on an older internal task that was left open kept logging to it. Each run now looks up the newest open one, switches when it differs, and says so in one line.

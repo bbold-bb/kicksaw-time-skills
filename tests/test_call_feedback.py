@@ -3,6 +3,7 @@ import html
 import json
 import os
 import re
+from datetime import datetime
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 LOG = "skills/log-time/SKILL.md"
@@ -224,6 +225,16 @@ def test_guide_has_two_tabs_and_whats_new():
     assert version in new
     for s in ("From team feedback", "Coming next", "Comment on this page"):
         assert s in new, s
+
+
+def test_whats_new_has_one_entry_per_date_newest_first():
+    g = read("docs/time-skills-guide.html")
+    dates = [datetime.strptime(d, "%B %d, %Y") for d in re.findall(r'class="date">([^<]+)<', g)]
+    assert dates and dates == sorted(set(dates), reverse=True)
+    changes = re.findall(r'<div class="chg.*?</div>', g, re.S)
+    assert changes
+    for c in changes:
+        assert re.search(r'<span class="v">\(\d+\.\d+\.\d+\)</span></b>', c), c
 
 
 def test_readme_points_the_team_to_whats_new():

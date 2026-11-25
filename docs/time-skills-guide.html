@@ -67,10 +67,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 /* What's new */
 .rel { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--white); }
 .rel + .rel { margin-top: 20px; }
-.rel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 14px 20px; background: var(--smoke); border-bottom: 1px solid var(--line); }
-.rel-head .ver { font-family: var(--mono); font-weight: 500; color: var(--navy); font-size: 1.1rem; }
-.rel-head .date { font-size: .9rem; color: var(--muted); }
-.rel-head .sum { flex-basis: 100%; font-family: var(--head); font-weight: 600; color: var(--navy); }
+.rel-head { padding: 14px 20px; background: var(--smoke); border-bottom: 1px solid var(--line); }
+.rel-head .date { font-size: 1.1rem; }
+.chg .v { font-family: var(--body); font-weight: 400; font-size: .85rem; color: var(--muted); white-space: nowrap; }
 .rel-body { padding: 18px 20px 20px; display: grid; gap: 20px; }
 .grp { display: grid; gap: 10px; }
 .grp-label { font-family: var(--head); font-weight: 700; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -362,150 +361,71 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <p>To update, paste the setup line from the Get started tab again. Changes marked <span class="fb">From team feedback</span> came from people using the skills.</p>
     </div>
 
+    <!-- One article per date, newest first. A release on a date already listed adds its changes to that article, newest first in each group, with its version in parentheses. -->
     <article class="rel">
-      <header class="rel-head"><span class="ver">1.20.5</span><span class="date">November 25, 2026</span><span class="sum">Internal time stays current</span></header>
+      <header class="rel-head"><h3 class="date">November 25, 2026</h3></header>
       <div class="rel-body">
       <div class="grp">
         <div class="grp-label">Logging your time</div>
         <div class="changes">
-          <div class="chg"><b>Always the newest internal task</b><p>Every run checks for the newest place to log internal time, moves you to it, and tells you in one line.</p></div>
+          <div class="chg"><b>Always the newest internal task <span class="v">(1.20.5)</span></b><p>Every run checks for the newest place to log internal time, moves you to it, and tells you in one line.</p></div>
+          <div class="chg"><b>Checked before it's written <span class="v">(1.20.3)</span></b><p>Every record needs a task, a date and time on it. If one is missing, you're asked for it.</p></div>
+          <div class="chg"><b>Better meeting notes <span class="v">(1.20.0)</span></b><p>Summaries from Notion and Wispr Flow make notes specific. Hours still come from your calendar. tl;dv, Zoom, ZoomInfo and Plaud aren't read yet.</p></div>
+          <div class="chg"><b>Unclear time fits your job <span class="v">(1.20.0)</span></b><p>For project managers it becomes Communications, for writers Documentation, instead of always Coding and Configuration.</p></div>
         </div>
       </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.20.4</span><span class="date">November 25, 2026</span><span class="sum">One less setup question</span></header>
-      <div class="rel-body">
       <div class="grp">
         <div class="grp-label">Setup</div>
         <div class="changes">
-          <div class="chg"><b>Your internal task is picked for you</b><p>Setup finds the newest place to log internal time and uses it, so you're not asked to choose.</p></div>
+          <div class="chg"><b>Your internal task is picked for you <span class="v">(1.20.4)</span></b><p>Setup finds the newest place to log internal time and uses it, so you're not asked to choose.</p></div>
+          <div class="chg"><b>Flux is out <span class="v">(1.20.1)</span></b><p>Setup no longer looks for a Flux resource, so it can't stop you. Your time records go in without one.</p></div>
+          <div class="chg"><b>How you work <span class="v">(1.20.0)</span></b><p>A few clicks on what fills your week and what leaves no trace. Already set up? Your next run asks once.</p></div>
+          <div class="chg"><b>Your meetings <span class="v">(1.20.0)</span></b><p>Say where your meetings are recorded. Personal recordings are never shown or used.</p></div>
         </div>
       </div>
       </div>
     </article>
     <article class="rel">
-      <header class="rel-head"><span class="ver">1.20.3</span><span class="date">November 25, 2026</span><span class="sum">No empty time records</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Logging your time</div>
-        <div class="changes">
-          <div class="chg"><b>Checked before it's written</b><p>Every record needs a task, a date and time on it. If one is missing, you're asked for it.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.20.1</span><span class="date">November 25, 2026</span><span class="sum">No Flux needed</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Setup</div>
-        <div class="changes">
-          <div class="chg"><b>Flux is out</b><p>Setup no longer looks for a Flux resource, so it can't stop you. Your time records go in without one.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.20.0</span><span class="date">November 25, 2026</span><span class="sum">Setup learns how you work</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Setup</div>
-        <div class="changes">
-          <div class="chg"><b>How you work</b><p>A few clicks on what fills your week and what leaves no trace. Already set up? Your next run asks once.</p></div>
-          <div class="chg"><b>Your meetings</b><p>Say where your meetings are recorded. Personal recordings are never shown or used.</p></div>
-        </div>
-      </div>
-      <div class="grp">
-        <div class="grp-label">Logging your time</div>
-        <div class="changes">
-          <div class="chg"><b>Better meeting notes</b><p>Summaries from Notion and Wispr Flow make notes specific. Hours still come from your calendar. tl;dv, Zoom, ZoomInfo and Plaud aren't read yet.</p></div>
-          <div class="chg"><b>Unclear time fits your job</b><p>For project managers it becomes Communications, for writers Documentation, instead of always Coding and Configuration.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.19.4</span><span class="date">November 21, 2026</span><span class="sum">Allocation without pipeline</span></header>
+      <header class="rel-head"><h3 class="date">November 21, 2026</h3></header>
       <div class="rel-body">
       <div class="grp">
         <div class="grp-label">Your time report</div>
         <div class="changes">
-          <div class="chg"><b>Pipeline staffing kept apart</b><p>Staffing on a deal that isn't a project yet no longer counts toward your allocation, so the same hours can't show up twice. It's listed on its own line instead.</p></div>
+          <div class="chg"><b>Pipeline staffing kept apart <span class="v">(1.19.4)</span></b><p>Staffing on a deal that isn't a project yet no longer counts toward your allocation, so the same hours can't show up twice. It's listed on its own line instead.</p></div>
         </div>
       </div>
       </div>
     </article>
     <article class="rel">
-      <header class="rel-head"><span class="ver">1.19.3</span><span class="date">November 20, 2026</span><span class="sum">Google Tasks from a screenshot</span></header>
+      <header class="rel-head"><h3 class="date">November 20, 2026</h3></header>
       <div class="rel-body">
       <div class="grp">
         <div class="grp-label">Logging your time</div>
         <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>Paste your calendar</b><p>Use Google Tasks? Paste a screenshot of your calendar with tasks showing, and they're added as events in your open time.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.19.2</span><span class="date">November 20, 2026</span><span class="sum">Colors for new projects</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Setup</div>
-        <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>A color for each new project</b><p>If you color-code your calendar, a newly added project asks for its color, offering ones you're not using yet.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>Google Tasks</b><p>If you use Tasks, the run asks whether any open time was a task you worked on.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.19.1</span><span class="date">November 20, 2026</span><span class="sum">Three new setup questions for people already set up</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Setup</div>
-        <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>Asked once</b><p>Your next run asks about calendar colors, Google Tasks and your timezone. Change any answer later by asking.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.19.0</span><span class="date">November 20, 2026</span><span class="sum">Calendar first, then time records, and setup that fits how you work</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Logging your time</div>
-        <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar first, then records</b><p>Approve the calendar, check it, then approve the time records.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>A cleaner proposal</b><p>Every run uses the same layout: one block per day, then questions, then unaccounted time.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>Written exactly as shown</b><p>Records go in with the hours you approved, with progress as they're written.</p></div>
-          <div class="chg"><b>Back from time away?</b><p>If your last record is over two weeks old, it asks where to start.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Paste your calendar <span class="v">(1.19.3)</span></b><p>Use Google Tasks? Paste a screenshot of your calendar with tasks showing, and they're added as events in your open time.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar first, then records <span class="v">(1.19.0)</span></b><p>Approve the calendar, check it, then approve the time records.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>A cleaner proposal <span class="v">(1.19.0)</span></b><p>Every run uses the same layout: one block per day, then questions, then unaccounted time.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Written exactly as shown <span class="v">(1.19.0)</span></b><p>Records go in with the hours you approved, with progress as they're written.</p></div>
+          <div class="chg"><b>Back from time away? <span class="v">(1.19.0)</span></b><p>If your last record is over two weeks old, it asks where to start.</p></div>
         </div>
       </div>
       <div class="grp">
         <div class="grp-label">Setup</div>
         <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>Your timezone</b><p>Defaults to your computer's timezone, not the Salesforce setting.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar colors and Tasks</b><p>New events match your project colors, and the run asks whether any open time was a Google Task.</p></div>
-          <div class="chg team"><span class="fb">From team feedback</span><b>Easier sign-in</b><p>Opens Kicksaw's own Salesforce sign-in page.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>A color for each new project <span class="v">(1.19.2)</span></b><p>If you color-code your calendar, a newly added project asks for its color, offering ones you're not using yet.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Google Tasks <span class="v">(1.19.2)</span></b><p>If you use Tasks, the run asks whether any open time was a task you worked on.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Asked once <span class="v">(1.19.1)</span></b><p>Your next run asks about calendar colors, Google Tasks and your timezone. Change any answer later by asking.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Your timezone <span class="v">(1.19.0)</span></b><p>Defaults to your computer's timezone, not the Salesforce setting.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Calendar colors and Tasks <span class="v">(1.19.0)</span></b><p>New events match your project colors, and the run asks whether any open time was a Google Task.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Easier sign-in <span class="v">(1.19.0)</span></b><p>Opens Kicksaw's own Salesforce sign-in page.</p></div>
+          <div class="chg"><b>Guided setup <span class="v">(1.18.0)</span></b><p>Paste the setup line and Claude installs everything, signs you in, and starts setup.</p></div>
+          <div class="chg"><b>Works on Windows <span class="v">(1.18.0)</span></b><p>Setup, logging and reports run on Windows as well as on a Mac.</p></div>
         </div>
       </div>
       <div class="grp">
         <div class="grp-label">Dashboards</div>
         <div class="changes">
-          <div class="chg team"><span class="fb">From team feedback</span><b>Opens for you</b><p>Your dashboard opens in your browser after a run, with a link to My Hours - Dashboard 2.0.</p></div>
-        </div>
-      </div>
-      </div>
-    </article>
-    <article class="rel">
-      <header class="rel-head"><span class="ver">1.18.0</span><span class="date">November 20, 2026</span><span class="sum">One line sets everything up, on a Mac or on Windows</span></header>
-      <div class="rel-body">
-      <div class="grp">
-        <div class="grp-label">Setup</div>
-        <div class="changes">
-          <div class="chg"><b>Guided setup</b><p>Paste the setup line and Claude installs everything, signs you in, and starts setup.</p></div>
-          <div class="chg"><b>Works on Windows</b><p>Setup, logging and reports run on Windows as well as on a Mac.</p></div>
+          <div class="chg team"><span class="fb">From team feedback</span><b>Opens for you <span class="v">(1.19.0)</span></b><p>Your dashboard opens in your browser after a run, with a link to My Hours - Dashboard 2.0.</p></div>
         </div>
       </div>
       </div>
