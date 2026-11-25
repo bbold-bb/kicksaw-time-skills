@@ -63,6 +63,8 @@ SELECT Id, Name, TASKRAY__Project__r.Name, TASKRAY__Archived__c FROM TASKRAY__Pr
 SELECT Id, Name, TASKRAY__Status__c, TASKRAY__trCompleted__c, Archived_Date__c, TASKRAY__Project_End__c FROM TASKRAY__Project__c WHERE Id IN (<project ids>)
 ```
 
+**Drift check, internal task** (every run): the *live task* query above on the internal project. The first row is the task to use.
+
 ## Run queries
 
 **Last records** (Step 1 boundary):
