@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.20.1 (2026-11-25)
+
+- **Flux is no longer needed.** Setup doesn't look for a Flux resource, and a missing one no longer stops it. Time records are written without a Flux resource or a service line; the org sets the service line from the user's own record, as it does for records entered by hand. Older profiles keep their old fields, which are ignored.
+
 ## 1.20.0 (2026-11-25)
 
 - **Setup asks how you work.** Short pop-ups cover what fills your week, what takes time but leaves no trace, how much goes through Claude, and where your meetings are recorded, plus which project any unlabeled recurring meetings belong to. Answers are saved as `work` in the profile (recurring meetings in `conventions`). Existing profiles are asked once, on the next run.

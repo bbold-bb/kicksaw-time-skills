@@ -2,9 +2,7 @@
   "org_alias": "Kicksaw-Prod",
   "user": {
     "username": "first.last@example.com",
-    "user_id": "<your user Id>",
-    "flux_resource_id": "<your Flux resource Id>",
-    "delivery_team": "Your Delivery Team"
+    "user_id": "<your user Id>"
   },
   "rhythm": {
     "workday_start": "08:30",
