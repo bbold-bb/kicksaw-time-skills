@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.20.4 (2026-11-25)
+
+- **Internal time goes to the newest open task, without asking.** When the internal project has more than one open time task, setup takes the newest. If the saved one is archived later, a run switches to the newest and says so. Client projects with several open tasks still ask.
+
 ## 1.20.3 (2026-11-25)
 
 - **Only required fields can stop a record.** The org's create layouts require the task, date and hours, so `check_record.py` stops a record only when one of those is blank or hours aren't above zero (or a placeholder was left in). Other blanks, and hours that aren't in quarters, are mentioned and don't stop the write.
