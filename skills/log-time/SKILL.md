@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.20.0
+version: 1.20.1
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -53,7 +53,7 @@ The less the user types, the better. Every question in setup, drift, and the pro
 Setup asks as little as possible. What can be read is read; the user confirms it with a click. Do not write a time record during setup.
 
 1. **Org.** Try `sf org display user -o Kicksaw-Prod --json` without asking. If it resolves, that is the org; `id` and `username` become `user.user_id` and `user.username`. If it fails, run `sf org list --json` and offer the logged-in aliases as options. If there are none, run the *Org login* step of `SETUP.md` (see *Preflight*) and continue once it succeeds. Never ask the user to type their own Id.
-2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the Resource Hero resource for `resource_hero.resource_id` and the user's `TimeZoneSidKey` (both in the reference). No question here; the timezone is confirmed in step 9, because the Salesforce setting is often the company's default rather than where the user works.
+2. **Resource and timezone.** Read the Resource Hero resource for `resource_hero.resource_id` and the user's `TimeZoneSidKey` (both in the reference). No question here; the timezone is confirmed in step 9, because the Salesforce setting is often the company's default rather than where the user works.
 3. **Projects, inferred.** Gather candidates from the org, without asking first:
    - their current **Resource Hero assignments** that link to a TaskRay project (the *setup assignments* query in the Resource Hero reference);
    - the projects they **logged to in the last 90 days** (the *recent history* query).
@@ -111,6 +111,8 @@ Save `rhythm.uses_google_tasks`, `rhythm.color_codes`, a `color_id` on every pro
 Profiles saved before 1.20.0 also have no `work` key. When it is missing, ask everything in Setup step 8, once, before Step 1, after the questions above if those are due too. Start with one line: "A few questions about how you work, asked once." The `work` key being present, even with skipped answers, is what marks them as answered.
 
 Profiles saved before 1.17.0 have no `picklists`. When they are missing, read and save them first (*Allowed values* in Setup step 4), because the unclear Activity Type is checked against them. No question is needed.
+
+Older profiles may hold `flux_resource_id` and `delivery_team` under `user`. They aren't used anymore: ignore them, and never mention them. Never look up a Flux resource, and never stop because one is missing.
 
 ### Color for a new project
 

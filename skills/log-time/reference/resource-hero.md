@@ -12,7 +12,7 @@ Verified against Kicksaw-Prod on 2026-09-18.
 | `ResourceHeroApp__Resource_Assignment__c` | One row per person per project. Carries the date range and the role |
 | `ResourceHeroApp__Resource_Forecast__c` | The detail. **One row per day**, child of the assignment |
 
-An assignment is not the same record as the Flux resource on the time record. A person has one Flux resource and one Resource Hero resource, plus one assignment per project they are staffed to.
+A person has one Resource Hero resource, plus one assignment per project they are staffed to.
 
 ## Reading the forecast
 

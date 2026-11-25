@@ -218,7 +218,7 @@ def test_guide_and_readmes_are_current():
     g = read("docs/time-skills-guide.html")
     version = [l for l in read(LOG).splitlines() if l.startswith("version:")][0].split()[1]
     assert g.count("1.19.4") == 1  # only its own What's new entry
-    assert g.count(version) >= 3
+    assert g.count(version) >= 3  # hero, footer, What's new
     assert "How you work" in g
     assert "never listed or opened" not in g
     assert "meetings.md" in read("README.md")

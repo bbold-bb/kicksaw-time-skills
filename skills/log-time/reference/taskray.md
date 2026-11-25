@@ -11,18 +11,11 @@ Every query below takes `-o <org alias>` from the profile. `<username>`, `<user_
 | `TASKRAY__trTaskTime__c` | The time record. The only object this skill writes |
 | `TASKRAY__Project__c` | The project |
 | `TASKRAY__Project_Task__c` | The task a time record must point at. `TASKRAY__Task__c` is required on the time record |
-| `flux__Flux_Resource__c` | The Flux resource for the user, owned by their User record |
 | `TASKRAY__trContributor__c` | TaskRay Team rows. **Not reliable for "which projects am I on"**: they lag reality by years. Do not use them as the membership check |
 
 ## Setup and drift queries
 
 **Identity.** `sf org display user -o <alias> --json` returns `id` and `username`.
-
-**Flux resource** (one row expected):
-
-```
-SELECT Id, Name, DeliveryTeam__c, flux__Active__c FROM flux__Flux_Resource__c WHERE OwnerId = '<user_id>' AND flux__Active__c = true
-```
 
 **Timezone** (offered as the second timezone option in setup):
 
@@ -159,9 +152,7 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
   "TASKRAY__trUnsavedTimeEntry__c": false,
   "Bypass_Time_Flow__c": false,
   "Activity_Type__c": "<from the Client Work list>",
-  "DeliveryTeam__c": "<delivery_team from profile>",
   "HourlyRate__c": 0,
-  "FluxResource__c": "<flux_resource_id from profile>",
   "Notes__c": "<comma-joined titles, truncated to 255>",
   "Notes_Long_Text__c": "<comma-joined titles, full>"
 }
@@ -171,7 +162,7 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
 
 **`Category__c` ("Work Type") stays blank on client work.** It was taken off the entry flow, it is not required, and the org leaves it null on nearly every record. Do not populate it or propose phase values for it. Internal records keep `Category__c: "Internal"` because that record type allows nothing else.
 
-Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. Everything else (Monthly Billing Summary, Pay Period, Owner Role, Week, hour rollups, Flux Team) is set by org automation on insert; never set it by hand.
+Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. Everything else (Monthly Billing Summary, Pay Period, Owner Role, Week, hour rollups, Resource Service Line, Team) is set by org automation on insert; never set it by hand.
 
 **Insert one at a time** so the flows fire the way they do from the UI:
 
