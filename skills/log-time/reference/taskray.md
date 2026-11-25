@@ -149,8 +149,6 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
   "TASKRAY__Owner__c": "<user_id from profile>",
   "TASKRAY__Billable__c": true,
   "TASKRAY__trTimeType__c": "Standard",
-  "TASKRAY__trUnsavedTimeEntry__c": false,
-  "Bypass_Time_Flow__c": false,
   "Activity_Type__c": "<from the Client Work list>",
   "Notes__c": "<comma-joined titles, truncated to 255>",
   "Notes_Long_Text__c": "<comma-joined titles, full>"
@@ -161,21 +159,21 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
 
 **`Category__c` ("Work Type") stays blank on client work.** It was taken off the entry flow, it is not required, and the org leaves it null on nearly every record. Do not populate it or propose phase values for it. Internal records keep `Category__c: "Internal"` because that record type allows nothing else.
 
-Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. Everything else (Monthly Billing Summary, Pay Period, Owner Role, Week, hour rollups, Hourly Rate, Resource Service Line, Team) is set by org automation on insert; never set it by hand.
+Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. The skill sends nothing else: not the hourly rate, service line, team, billing summary, pay period or rollups.
 
-### Required values
+### Required fields
 
-Every record must have all of these, with no blank, zero or placeholder value. `check_record.py` enforces that; whether a picklist value is allowed comes from the profile's `picklists`, and the org.
+Only these are required by the org: the same three on the create layout of all three record types (checked 2026-11-25). `check_record.py` stops a record when one is blank, or when hours aren't more than zero.
 
 | Field | Must be |
 | --- | --- |
-| `RecordTypeId`, `TASKRAY__Project__c`, `TASKRAY__Task__c`, `TASKRAY__Owner__c` | A record Id |
+| `TASKRAY__Task__c` | A record Id |
 | `TASKRAY__Date__c` | A real date, YYYY-MM-DD |
-| `TASKRAY__Hours__c` | More than zero, in quarter hours |
-| `TASKRAY__Billable__c` | Set to true or false, and false on internal time |
-| `TASKRAY__trTimeType__c`, `Activity_Type__c` | An allowed value |
-| `Notes__c`, `Notes_Long_Text__c` | Text |
-| `Category__c`, `Non_Billable_Reason__c` | Internal time only: an allowed value |
+| `TASKRAY__Hours__c` | More than zero |
+
+The rest of the payload is sent because it is useful: it puts the record on the right project and person, and makes it readable and reportable. A blank there is mentioned and doesn't stop the write; zero or blank is normal for many fields. `TASKRAY__Billable__c` defaults to false, so client work has to send true.
+
+**Don't add fields.** The org's automation and validation rules can't be seen from here. Send a field only when the layout requires it or it helps the user, and don't assume what automation does with the rest.
 
 Check the payload file first, and write only when it prints OK (`check_record.py payload.json --update` for a same-day merge).
 

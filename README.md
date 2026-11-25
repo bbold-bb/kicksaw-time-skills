@@ -61,7 +61,7 @@ flowchart TB
 What it will and won't do:
 
 - **Never invents work.** A gap with no evidence is listed as unaccounted, and you're asked about it.
-- **No empty records.** A time record with zero or blank hours, or a standard field missing, is never written.
+- **No empty records.** A time record without a task, a date, and hours above zero is never written.
 - **Adds, doesn't edit.** Past days get a second record. Only a record created today is merged in place.
 - **Notes read like yours.** Time records and calendar events never mention Claude, Codex, AI, sessions or how they were built.
 - **Only writes where it should.** Kicksaw-Prod time records and your calendar. Every other org, repo and Slack stays read-only.
