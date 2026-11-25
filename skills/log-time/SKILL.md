@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.19.4
+version: 1.20.0
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -34,7 +34,7 @@ Before anything else, check the tools this skill needs. Silent when everything i
 
 If `sf` isn't found, or the org check fails with an authentication error (expired or missing login), stop and offer to fix it: "The Salesforce CLI isn't set up (or your Kicksaw sign-in expired). Want me to fix that now?" On a yes, download https://raw.githubusercontent.com/bbold-bb/kicksaw-time-skills/main/SETUP.md with your shell, read all of it, and follow its *Salesforce CLI* or *Org login* step, whichever failed. Don't print a login command for the user to run. Any other failure (a network error, a query error) is not a setup problem: report it as usual.
 
-Read the profile from `~/.claude/kicksaw-time/profile.json`. If it is not there, look in the legacy locations (`profile.json` beside this file, then `~/.claude/skills/log-time/profile.json`); if it turns up in one of those, move it to the home location, say you did, and carry on. The profile is the user's data and lives outside the skill folder so that installing or updating a skill can never replace it. If it does not exist, or the user asks to reset it, run **Setup** below before anything else. If it exists, run the **org drift check** every time, the **re-verification** when a trigger fires, and the **new questions** when the profile predates them. All finish before Step 1.
+Read the profile from `~/.claude/kicksaw-time/profile.json`. If it is not there, look in the legacy locations (`profile.json` beside this file, then `~/.claude/skills/log-time/profile.json`); if it turns up in one of those, move it to the home location, say you did, and carry on. The profile is the user's data and lives outside the skill folder so that installing or updating a skill can never replace it. If it does not exist, or the user asks to reset it, run **Setup** below before anything else. If it exists, run the **org drift check** every time, the **re-verification** when a trigger fires, and the **new questions** when the profile predates any of them. All finish before Step 1.
 
 ### Asking questions
 
@@ -52,7 +52,7 @@ The less the user types, the better. Every question in setup, drift, and the pro
 Setup asks as little as possible. What can be read is read; the user confirms it with a click. Do not write a time record during setup.
 
 1. **Org.** Try `sf org display user -o Kicksaw-Prod --json` without asking. If it resolves, that is the org; `id` and `username` become `user.user_id` and `user.username`. If it fails, run `sf org list --json` and offer the logged-in aliases as options. If there are none, run the *Org login* step of `SETUP.md` (see *Preflight*) and continue once it succeeds. Never ask the user to type their own Id.
-2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the Resource Hero resource for `resource_hero.resource_id` and the user's `TimeZoneSidKey` (both in the reference). No question here; the timezone is confirmed in step 8, because the Salesforce setting is often the company's default rather than where the user works.
+2. **Resource and timezone.** Query the Flux resource owned by that user (query in the reference). Save its Id and `DeliveryTeam__c`. If none is found, stop and tell them: time records need one, and someone in operations has to create it. Read the Resource Hero resource for `resource_hero.resource_id` and the user's `TimeZoneSidKey` (both in the reference). No question here; the timezone is confirmed in step 9, because the Salesforce setting is often the company's default rather than where the user works.
 3. **Projects, inferred.** Gather candidates from the org, without asking first:
    - their current **Resource Hero assignments** that link to a TaskRay project (the *setup assignments* query in the Resource Hero reference);
    - the projects they **logged to in the last 90 days** (the *recent history* query).
@@ -65,15 +65,35 @@ Setup asks as little as possible. What can be read is read; the user confirms it
 5. **Folders.** `transcript_root` is `~/.claude/projects` unless it does not exist (on Windows that is `%USERPROFILE%\.claude\projects`). For `repo_roots`, look under the home folder on either system, two levels down, for folders that hold git repos, and offer them as a **multi-select** (`~/Code`, `~/Projects`, and so on), with "Other" for a path. If none are found, save an empty list and move on.
    Then map folders to projects **without asking**: a repo or transcript folder whose path contains a project's label or client name goes in that project's `directories`. Discover repos as the immediate children of each root plus one level down (anything holding a `.git`). Discover transcript folders as those with a file modified in the last 90 days, and map each back to its real path by testing the path-encoded name against folders on disk (see *Directory matching*, drive letters included); **the entry saved is always that real path**, written with `~` for the home folder and forward slashes, never a bare folder name. Everything else stays unmapped. It is asked about on the first run that finds work in it (*Evidence drift*), so nobody answers questions about folders they no longer use.
 6. **Slack.** Confirm the Slack connector by searching for messages from the user in the last 30 days; the search tool reports the acting user's Id, which becomes `slack.user_id`. If the connector is not connected, say so, save `"slack": null`, and continue. Slack is an evidence source, not a gate, and every later run notes that it is missing.
-   For each project, find its channels: a channel search across public and private channels using the account name and its obvious short forms, plus the channels the user posted in during the last 90 days whose name matches. **Verify every candidate live** (resolve the Id and read back the name, purpose, and the user's message count). Then one pop-up, one **multi-select** question per project: "Which of these channels are for <Label>?", each option a channel with its purpose and message count. A project with no candidates gets no question. Set `client_facing` to true for a `kicksaw_<client>` or `kicksaw-<client>` channel and false otherwise; the summary in step 8 shows it for correction.
+   For each project, find its channels: a channel search across public and private channels using the account name and its obvious short forms, plus the channels the user posted in during the last 90 days whose name matches. **Verify every candidate live** (resolve the Id and read back the name, purpose, and the user's message count). Then one pop-up, one **multi-select** question per project: "Which of these channels are for <Label>?", each option a channel with its purpose and message count. A project with no candidates gets no question. Set `client_facing` to true for a `kicksaw_<client>` or `kicksaw-<client>` channel and false otherwise; the summary in step 9 shows it for correction.
    Every other channel stays unmapped and is asked about on the first run that finds the user posting in it. Group DMs and DMs are never mapped; they are attributed from content at run time (Step 3).
 7. **Calendar.** `rhythm.calendar_account` is the org username. Confirm it by listing one day of that calendar. If that fails, offer the calendars the connector can see as options. Then one pop-up, two questions (the per-project color questions follow in their own pop-ups):
    - "Do you color-code projects on your calendar?" Options: "No" and "Yes". On a yes, list the last 30 days of events, and for each project take the color most used on events whose title carries its label or client name. Show the result as one question per project, four projects per pop-up ("ClientA looks like Peacock. Right?"), with three options: the inferred color (Recommended), the runner-up color, and "No color for this project"; "Other" takes a color name. Save the Google event color Id as the project's `color_id`. When two projects share a color, save no `color_id` for either and say why. Color names: 1 Lavender, 2 Sage, 3 Grape, 4 Flamingo, 5 Banana, 6 Tangerine, 7 Peacock, 8 Graphite, 9 Blueberry, 10 Basil, 11 Tomato. On a no, `color_id` stays null for every project. Save the answer as `rhythm.color_codes`. Labels stay the main signal either way, since people change colors between projects.
    - "Do you track work as Google Tasks?" Options: "No" and "Yes". On a yes, say: "Got it. When I list unaccounted time, I'll ask whether any of it was a task. You can tell me, or paste a screenshot of your calendar with your tasks showing." Save `rhythm.uses_google_tasks` either way. (The calendar connector doesn't include Google Tasks, which is why the run asks instead of reading them.)
-8. **Workday, timezone, and save.** One last pop-up, three questions:
+8. **How you work.** What counts as evidence depends on how a person works, so learn it before the first run. Run the *work pattern* queries in the reference, and mark the best-supported options "(Recommended)" with the evidence in their descriptions ("38h in the last 90 days"). Every question here can be skipped; a skipped one saves an empty list or null.
+   **First pop-up, three questions:**
+   - "What fills most of your week?" Multi-select: "Building and configuring", "Documents and design", "Managing projects and clients", "Testing and reviews". Recommend by hours logged in the last 90 days (Meeting says nothing here), and recommend "Managing projects and clients" when the role names a project, program, engagement or delivery manager. Saved as `work.main_work` (`building`, `documents`, `managing`, `testing`).
+   - "What takes time but leaves no trace here?" Multi-select: "Salesforce work by hand", "Planning and Jira boards", "Documents and slides", "Calls and chats not on the calendar". Saved as `work.no_trace` (`salesforce`, `planning`, `documents`, `calls`, or the words typed under "Other").
+   - "How much of your work goes through Claude?" Options: "Most", "Some", "Rarely", with the one that fits the session history marked "(Recommended)". Saved as `work.claude_use`. With "Rarely", a day without session transcripts is normal: later runs don't remark on it.
+
+   The main work sets `work.unclear_activity_type`, the Activity Type for a client block whose evidence doesn't settle it:
+
+   | Main work | Unclear blocks become |
+   | --- | --- |
+   | Building and configuring | Coding and Configuration |
+   | Testing and reviews | Coding and Configuration |
+   | Documents and design | Documentation |
+   | Managing projects and clients | Communications |
+
+   When the picks lead to different types, the type with the most hours in the last 90 days wins; with no hours to compare, ask "Which of these takes the most time?" With none picked, it is Coding and Configuration. The value must be in the profile's `picklists` for Client Work; if it isn't, say so and offer the allowed values.
+   **Recurring meetings, only when there are some.** Find events with attendees that appear 3 or more times in the last 30 days, whose title names no project label or client, whose color points to no project, and that no line in `conventions` covers. Ask about the four most frequent, one question each: "Which project does '<title>' belong to?" Options: the likeliest project labels, Internal, and "It varies, ask me". Save each answer as a line in `conventions` ("Meetings titled '<title>' book to <label>"), or "Ask each time which project '<title>' belongs to."
+   **Meetings pop-up.** "Where are your meetings recorded or transcribed?" Multi-select, split over two questions: Notion, tl;dv, Zoom, Wispr Flow, ZoomInfo (Chorus), Plaud, another tool, and "I don't record". Put connected tools first. For a tool the reference marks as read, show how many meetings it holds from the last 30 days; never list any other tool's recordings.
+   Then, unless the answer was "I don't record", ask in a second pop-up: "Which of these hold only work meetings?" Multi-select of the tools just picked. Anything not ticked is treated as mixed.
+   Save `work.recorders`, one entry per tool: `{ "tool": "notion", "connected": true, "work_only": true }`, with `"connected": false` when its connector isn't available in this session. For those, say once where to connect it (Claude's connector settings), and that the run works without it. The user signs in themselves; the skill never asks for a password. For a tool the reference marks *Not read yet*, say the answer is saved and that the skill doesn't read that tool yet.
+9. **Workday, timezone, and save.** One last pop-up, three questions:
    - "What are your usual work hours?" Options: 9:00 to 5:00 (Recommended), 8:00 to 4:30, 8:30 to 5:00, with "Other" for anything else. They set `rhythm.workday_start` and `workday_end`. They only shape gap-finding; after-hours work is still logged.
    - "What timezone do you work in?" The first option, marked "(Recommended)", is the computer's timezone: on a Mac, the part of `readlink /etc/localtime` after `zoneinfo/`; on Windows, `(Get-TimeZone).Id` in PowerShell, converted to its IANA name with `$iana = $null; [System.TimeZoneInfo]::TryConvertWindowsIdToIanaId((Get-TimeZone).Id, [ref]$iana); $iana` (PowerShell 7). Where that isn't available, use this table: Eastern Standard Time is `America/New_York`, Central Standard Time `America/Chicago`, Mountain Standard Time `America/Denver`, US Mountain Standard Time `America/Phoenix`, Pacific Standard Time `America/Los_Angeles`, Alaskan Standard Time `America/Anchorage`, Hawaiian Standard Time `Pacific/Honolulu`. Put the IANA name in the option label so the user confirms it. Add the Salesforce `TimeZoneSidKey` as a second option when it differs. The answer is `rhythm.timezone`.
-   - "Save this profile?" Before it, show a short summary: projects with labels, mapped folders, mapped channels, calendar, timezone. Options: "Save it" (Recommended) and "Change something", where "Other" names the change.
+   - "Save this profile?" Before it, show a short summary: projects with labels, mapped folders, mapped channels, calendar, how you work, meeting recorders, timezone. Options: "Save it" (Recommended) and "Change something", where "Other" names the change.
 
 `conventions` starts empty and grows only when the user states a rule during a run. Save the profile with `verified_on` set to today. Skip the drift check on a profile saved seconds ago, then continue into Step 1 with the scope the user originally asked for.
 
@@ -83,9 +103,13 @@ Profiles saved before 1.19.0 never answered three setup questions. When the prof
 
 - "Do you color-code projects on your calendar?" and, on a yes, the per-project color questions, exactly as in Setup step 7.
 - "Do you track work as Google Tasks?" as in Setup step 7, including what to say on a yes.
-- "What timezone do you work in?" as in Setup step 8, with the profile's current `rhythm.timezone` as the first option when it matches the computer's, and the computer's timezone first, marked "(Recommended)", when it doesn't.
+- "What timezone do you work in?" as in Setup step 9, with the profile's current `rhythm.timezone` as the first option when it matches the computer's, and the computer's timezone first, marked "(Recommended)", when it doesn't.
 
 Save `rhythm.uses_google_tasks`, `rhythm.color_codes`, a `color_id` on every project (null when there is none), and `rhythm.timezone`, together with anything the drift check or re-verification changed. The `uses_google_tasks` key being present is what marks the questions as answered.
+
+Profiles saved before 1.20.0 also have no `work` key. When it is missing, ask everything in Setup step 8, once, before Step 1, after the questions above if those are due too. Start with one line: "A few questions about how you work, asked once." The `work` key being present, even with skipped answers, is what marks them as answered.
+
+Profiles saved before 1.17.0 have no `picklists`. When they are missing, read and save them first (*Allowed values* in Setup step 4), because the unclear Activity Type is checked against them. No question is needed.
 
 ### Color for a new project
 
@@ -137,7 +161,7 @@ These can only be seen after reconstruction. They go in the proposal's ambiguous
 
 ### Re-verification (every 30 days)
 
-When `verified_on` is more than 30 days old, re-run Setup step 3's project inference and show it as the same multi-select, with the projects already in the profile listed first, re-resolve every task with the *live task rule*, and ask about any channel the user posted in during the last 90 days that is neither mapped nor excluded, one pop-up as in *Evidence drift*. Re-resolve every mapped channel Id at the same time and show any whose name changed or which no longer resolves. Do not re-ask already-mapped folders or channels, or the workday hours, unless the user wants to. Projects added here get a color question (*Color for a new project*). Then set `verified_on` to today. The profile is saved once, at the end of Step 0, whatever combination of drift and re-verification ran.
+When `verified_on` is more than 30 days old, re-run Setup step 3's project inference and show it as the same multi-select, with the projects already in the profile listed first, re-resolve every task with the *live task rule*, and ask about any channel the user posted in during the last 90 days that is neither mapped nor excluded, one pop-up as in *Evidence drift*. Re-resolve every mapped channel Id at the same time and show any whose name changed or which no longer resolves. Do not re-ask already-mapped folders or channels, or the workday hours, unless the user wants to. Projects added here get a color question (*Color for a new project*). Check how the user works, too: ask about a connected recorder that has meetings from the last 30 days and isn't in `work.recorders`, and update `connected` silently on the ones that are. When the Activity Type with the most client hours in the last 90 days, Meeting aside, matches none of `work.main_work`, ask "What fills most of your week?" again. Otherwise don't repeat Setup step 8. Then set `verified_on` to today. The profile is saved once, at the end of Step 0, whatever combination of drift and re-verification ran.
 
 ## Step 1: Find the boundary
 
@@ -176,6 +200,16 @@ Use the Google Calendar connector on the profile's `calendar_account` for the sc
 When projects have a `color_id`, an event's `colorId` attributes it to that project if the title doesn't already, and a title wins when the two disagree.
 
 Merge overlapping events, then find gaps of 25 minutes or more inside the workday. Skip `OUT_OF_OFFICE` events. Note any events that **overlap each other**: those are double-bookings the user must resolve, and they inflate the day if left alone.
+
+### Meeting recordings
+
+Skip this section when `work.recorders` is missing or empty, or none of its tools is both connected and marked as read in [reference/meetings.md](reference/meetings.md). Say in one line which picked tools weren't available. Recordings make the notes specific; the run never depends on them.
+
+- **The calendar stays in charge of hours.** A recording never adds, lengthens or shortens a booked meeting. Tools often report the scheduled time, not the recorded one. Someone else's recording shows what was discussed; it doesn't show that the user attended.
+- **Match first.** List the scope's recordings, and match each to a work meeting on the calendar: same title on the same day, or a start within 15 minutes of the event's, with attendees as the tiebreaker. Two recordings of one meeting: use the tool that covered more of the user's meetings in the last 30 days.
+- **Open only a matched recording**, and read the summary, not the transcript. Open the transcript only when there is no summary and the meeting's project or subject is unclear.
+- **Use** the topics, the decisions and the user's own follow-ups: to word notes, to settle which project a meeting served, and to suggest what an unexplained block nearby might have been (ask; a follow-up is not evidence that it was done). Nothing about anyone's health, family, pay or performance goes into an event or a note.
+- **Unmatched recordings** count only from tools with `work_only` true. List those of 5 minutes or longer under *Needs your call* ("A recorded call around 3:00 pm isn't on your calendar. Was it work?"). They are never booked without an answer, and not opened until the user says it was work. From every other tool, unmatched recordings are never shown or mentioned, titles included.
 
 ## Step 3: Reconstruct the gaps
 
@@ -277,7 +311,7 @@ Answer the questions above, then: write these events to your calendar?
 
 - **The day tables** list every event in the day, existing and new, in time order, so the day reads whole. *Why* says "already on calendar" for existing events. For new ones it gives the evidence in a few words, and notes an overlap under the *Overlapping sources* rule. The day heading gives calendar hours and how much of that is new.
 - **Needs your call** lists the ambiguous calls, numbered: overlapping meetings, heavy work during an invited meeting on another project, DMs with unclear attribution, work that spans midnight, internal versus billable, anything with thin evidence. Ask them through the option pop-up (*Asking questions*) right after the message.
-- **Unaccounted** lists gaps with no evidence at all, one line per day with a per-day subtotal and a grand total, duration in parentheses. Never pad it with sub-25-minute gaps. When the profile has `rhythm.uses_google_tasks`, add one line under it: "Were any of these a Google Task you worked on? Tell me which, or paste a screenshot of your calendar with your tasks showing, and I'll add them as events." Read each task's title, day and time from the screenshot, match it to a gap, and add it to that day's table as a new event, asking how long it took when the screenshot doesn't show it. Never take a screenshot yourself.
+- **Unaccounted** lists gaps with no evidence at all, one line per day with a per-day subtotal and a grand total, duration in parentheses. Never pad it with sub-25-minute gaps. When the profile has `rhythm.uses_google_tasks`, add one line under it: "Were any of these a Google Task you worked on? Tell me which, or paste a screenshot of your calendar with your tasks showing, and I'll add them as events." Read each task's title, day and time from the screenshot, match it to a gap, and add it to that day's table as a new event, asking how long it took when the screenshot doesn't show it. Never take a screenshot yourself. When the profile has `work.no_trace`, offer those as the options when asking about a gap ("Salesforce work by hand", "Planning and Jira boards"), alongside "Not work"; "Other" takes anything else.
 
 What the user says about a gap becomes a new event in this same Stage 1 proposal: add it to its day's table, show the changed days again, and ask once more. Gap answers that come after Stage 2 is approved go through both stages again, for those events and records only.
 
@@ -321,7 +355,7 @@ Then stop and wait. If the user changes a row, show the whole table again before
 
 Title format: `<project label>: <what they did>`, using the profile's `label`. Describe the work itself in the description and mark after-hours or weekend blocks as such. When the project has a `color_id`, pass it as the event's `colorId` so new events match the user's own color-coding.
 
-**Wording rule, important.** These records are read by other people. Never reference how the work was reconstructed. No mention of Claude, an LLM, AI tooling, prompts, sessions, transcripts, chat, or commits, and never the word "reconstructed." Describe what the user decided, built, or reviewed, in their voice, as ordinary work notes. The same rule applies to time record notes. Naming Slack as the medium is fine when the conversation was the work ("worked through cutover questions with the team in Slack"); saying that Slack, or anything else, was searched is not. Set `availability: AVAILABILITY_FREE` so historical availability is untouched. Create only where the calendar has nothing for that activity already; an event may overlap an existing one under the *Overlapping sources* rule, and never duplicates one.
+**Wording rule, important.** These records are read by other people. Never reference how the work was reconstructed. No mention of Claude, an LLM, AI tooling, prompts, sessions, transcripts, recordings, chat, or commits, and never the word "reconstructed." Describe what the user decided, built, or reviewed, in their voice, as ordinary work notes. The same rule applies to time record notes. Naming Slack as the medium is fine when the conversation was the work ("worked through cutover questions with the team in Slack"); saying that Slack, or anything else, was searched is not. Set `availability: AVAILABILITY_FREE` so historical availability is untouched. Create only where the calendar has nothing for that activity already; an event may overlap an existing one under the *Overlapping sources* rule, and never duplicates one.
 
 **Never put the time worked in the description.** No start and end times, no duration. The event's own start and end are the sole record of time spent, so the user can drag or resize the event without a description that then contradicts it. Keep the after-hours or weekend marker, just without the clock.
 
@@ -333,7 +367,7 @@ One record per date, per project, per Activity Type, using the project and task 
 
 ### Choosing the Activity Type
 
-`Activity_Type__c` is a restricted picklist **scoped by record type**. Use only values in the profile's `picklists` for that record type; the tables below are the defaults. If a table names a value the profile doesn't have, say so and ask which allowed value to use. If an insert is rejected for a picklist value, read the allowed values again and update `picklists` before retrying. Pick from the evidence, not by habit. Most blocks are Coding and Configuration or Meeting, but collapsing everything into those two misreports the work.
+`Activity_Type__c` is a restricted picklist **scoped by record type**. Use only values in the profile's `picklists` for that record type; the tables below are the defaults. If a table names a value the profile doesn't have, say so and ask which allowed value to use. If an insert is rejected for a picklist value, read the allowed values again and update `picklists` before retrying. Pick from the evidence, not by habit. Collapsing everything into Coding and Configuration and Meeting misreports the work.
 
 | What the block produced | Activity Type |
 | --- | --- |
@@ -341,7 +375,7 @@ One record per date, per project, per Activity Type, using the project and task 
 | Client or team correspondence: Slack threads, email drafting, Notion pushes, chasing answers | **Communications** |
 | Solo work producing config, metadata, scripts, queries, workbooks | **Coding and Configuration** |
 | The calendar event has attendees | **Meeting** |
-| Ambiguous, or genuinely mixed | **Coding and Configuration** |
+| Ambiguous, or genuinely mixed | `work.unclear_activity_type`, or **Coding and Configuration** when the profile has none |
 
 Documentation is the value most often missed. On a discovery-heavy engagement a large share of what looks like build work is deliverable writing.
 
@@ -381,7 +415,7 @@ If either refresh lists *Forecast left out* or *Pipeline staffing*, mention each
 These hold for everyone. Per-user rules live in the profile's `conventions` list and are read at the start of every run.
 
 - Recurring stand-ups log at their true length, usually **0.25h**.
-- Meetings with attendees are **Meeting**; solo blocks default to **Coding and Configuration**, but check the Activity Type tables first.
+- Meetings with attendees are **Meeting**; solo client blocks whose evidence doesn't settle it take `work.unclear_activity_type` (**Coding and Configuration** when there is none), but check the Activity Type tables first.
 - Work spanning midnight is split at midnight and lands on the day it happened.
 - When meetings overlap, ask which one they attended. The other is trimmed or dropped.
 - Overlapping events on the calendar are fine. On time records no minute is booked twice; the *Overlapping sources* order decides who gets it.

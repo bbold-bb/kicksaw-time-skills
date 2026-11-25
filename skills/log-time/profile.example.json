@@ -76,6 +76,16 @@
       { "id": "<channel Id>", "name": "random" }
     ]
   },
+  "work": {
+    "main_work": ["managing"],
+    "unclear_activity_type": "Communications",
+    "no_trace": ["planning", "calls"],
+    "claude_use": "some",
+    "recorders": [
+      { "tool": "notion", "connected": true, "work_only": true },
+      { "tool": "zoom", "connected": false, "work_only": true }
+    ]
+  },
   "transcript_root": "~/.claude/projects",
   "repo_roots": [
     "~/Projects",

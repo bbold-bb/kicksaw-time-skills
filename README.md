@@ -20,6 +20,7 @@ flowchart TB
     cal["Google Calendar<br/>required: every meeting and booked block"]
     slack["Slack<br/>recommended: only messages you sent"]
     sess["Claude Code sessions<br/>optional: when you typed, and in which folder"]
+    meet["Meeting recordings<br/>optional: summaries from Notion or Wispr Flow"]
     git["Git commits<br/>optional: from your work repos"]
     org["Kicksaw-Prod<br/>what you already logged, your projects and tasks"]
   end
@@ -48,7 +49,7 @@ flowchart TB
   classDef stepc fill:#043056,stroke:#043056,color:#FFFFFF
   classDef gate fill:#FBEDE8,stroke:#DD6443,stroke-width:2px,color:#043056
   classDef out fill:#E6F7FD,stroke:#68D5F8,color:#043056
-  class cal,slack,sess,git,org src
+  class cal,slack,sess,meet,git,org src
   class s1,s2,s3,s4,s6 stepc
   class s5 gate
   class ev,tr,db out
@@ -77,6 +78,7 @@ The skill folders are `skills/log-time/` and `skills/time-report/`. Each follows
 - Claude desktop (the Code tab) or Codex, on a Mac or on Windows. The quick start installs the rest: the skills, the Salesforce CLI (`sf`) signed in to the Kicksaw org (default alias `Kicksaw-Prod`), and Python for the report
 - A Google Calendar connector on your Kicksaw account, connected in whichever Claude surface you use
 - Recommended: a Slack connector on the Kicksaw workspace. The skill reads the messages you sent as evidence and never posts. Without it, setup saves Slack as off and the skill says so on every run
+- Optional: a Notion or Wispr Flow connector, if your meetings are recorded there. Summaries make notes specific and never change hours
 - Optional: Claude Code session transcripts and local git repos, which are the evidence for gap reconstruction. Without them the skill can still fill gaps you describe, but it will not reconstruct anything on its own
 
 ## Version

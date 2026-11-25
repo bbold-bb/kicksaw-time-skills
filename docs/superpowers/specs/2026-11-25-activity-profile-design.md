@@ -1,6 +1,6 @@
 # Activity profile
 
-Date: 2026-11-25. Status: draft for approval.
+Date: 2026-11-25. Status: approved 2026-11-25.
 
 ## Intent
 

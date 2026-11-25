@@ -213,6 +213,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
         <div class="src"><b>Google Calendar</b><span>Required. Every meeting and booked block, full day, after hours included</span></div>
         <div class="src"><b>Slack</b><span>Recommended. Only messages you sent, never posts</span></div>
         <div class="src opt"><b>Claude Code sessions</b><span>Optional. When you typed, and in which project folder. Codex history isn't read yet</span></div>
+        <div class="src opt"><b>Meeting recordings</b><span>Optional. Summaries from Notion or Wispr Flow, for better notes. Never changes hours</span></div>
         <div class="src opt"><b>Git commits</b><span>Optional. From your work repos</span></div>
         <div class="src"><b>Kicksaw-Prod</b><span>What you already logged, your projects and tasks</span></div>
       </div>
@@ -258,6 +259,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <div class="req"><span class="lvl must">Required</span><b>Google Calendar connector</b><span>On your Kicksaw account, connected in Claude or Codex. Without it the skill stops.</span></div>
       <div class="req"><span class="lvl must">Required</span><b>A Flux resource in the org</b><span>Time records need one. If setup can't find yours, ask operations to create it.</span></div>
       <div class="req"><span class="lvl rec">Recommended</span><b>Slack connector</b><span>On the Kicksaw workspace. Read-only. Without it, every run notes that Slack is off.</span></div>
+      <div class="req"><span class="lvl opt">Optional</span><b>Notion or Wispr Flow connector</b><span>If your meetings are recorded there. Makes your notes more specific.</span></div>
       <div class="req"><span class="lvl opt">Optional</span><b>Claude Code sessions and local git repos</b><span>The evidence for rebuilding gaps on its own. Without them it can only fill gaps you describe.</span></div>
     </div>
 
@@ -295,6 +297,8 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
           <li><b>Repo folders.</b> Tick the folders that hold your repos. They're matched to projects by name</li>
           <li><b>Slack channels.</b> Tick the channels that match each project</li>
           <li><b>Colors and Tasks.</b> Whether you color-code projects on your calendar (new events then match), and whether you track work as Google Tasks, so the run asks about them</li>
+          <li><b>How you work.</b> What fills your week, what leaves no trace, and how much goes through Claude, so unclear time and gaps fit your job</li>
+          <li><b>Your meetings.</b> Where they're recorded, and which of those tools hold only work meetings. Personal recordings stay out</li>
           <li><b>Work hours, timezone, then save.</b> 9 to 5 and your computer's timezone by default, then a summary to save or change</li>
         </ul>
         <p>Folders and channels it can't place are asked about later, on the first run that finds work in them.</p>
@@ -359,6 +363,25 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
       <p>To update, paste the setup line from the Get started tab again. Changes marked <span class="fb">From team feedback</span> came from people using the skills.</p>
     </div>
 
+    <article class="rel">
+      <header class="rel-head"><span class="ver">1.20.0</span><span class="date">November 25, 2026</span><span class="sum">Setup learns how you work</span></header>
+      <div class="rel-body">
+      <div class="grp">
+        <div class="grp-label">Setup</div>
+        <div class="changes">
+          <div class="chg"><b>How you work</b><p>A few clicks on what fills your week and what leaves no trace. Already set up? Your next run asks once.</p></div>
+          <div class="chg"><b>Your meetings</b><p>Say where your meetings are recorded. Personal recordings are never listed or opened.</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="grp-label">Logging your time</div>
+        <div class="changes">
+          <div class="chg"><b>Better meeting notes</b><p>Summaries from Notion and Wispr Flow make notes specific. Hours still come from your calendar. tl;dv and Zoom aren't read yet.</p></div>
+          <div class="chg"><b>Unclear time fits your job</b><p>For project managers it becomes Communications, for writers Documentation, instead of always Coding and Configuration.</p></div>
+        </div>
+      </div>
+      </div>
+    </article>
     <article class="rel">
       <header class="rel-head"><span class="ver">1.19.4</span><span class="date">November 21, 2026</span><span class="sum">Allocation without pipeline</span></header>
       <div class="rel-body">
@@ -464,7 +487,7 @@ footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; gap: 8px 24p
 </main>
 </div>
 
-<footer><div class="wrap"><span>Kicksaw Time Skills 1.19.4</span></div></footer>
+<footer><div class="wrap"><span>Kicksaw Time Skills 1.20.0</span></div></footer>
 
 <script>
 (function () {

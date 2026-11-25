@@ -20,9 +20,9 @@ def section(text, start, end):
     return text[i:text.index(end, i + len(start))]
 
 
-def test_version_is_1_19_0():
+def test_version_is_at_least_1_19():
     for p in (LOG, REPORT):
-        assert re.search(r"^version: 1\.19\.\d+$", read(p), re.M), p
+        assert re.search(r"^version: 1\.(19|[2-9]\d)\.\d+$", read(p), re.M), p
     assert "## 1.19.0 (" in read("CHANGELOG.md")
 
 
@@ -210,7 +210,7 @@ def test_existing_profiles_get_the_new_questions_once():
     assert "asked once" in s
     i = log.index("If it exists, run the **org drift check**")
     assert "new questions" in log[i:i + 400]
-    assert re.search(r"^version: 1\.19\.\d+$", log, re.M)
+    assert re.search(r"^version: 1\.(19|[2-9]\d)\.\d+$", log, re.M)
 
 
 # Guide tabs: Get started and What's new
