@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.20.4
+version: 1.20.5
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -150,10 +150,11 @@ Verification is not a one-time setup step. Any time a channel is about to be add
 
 ### Org drift check (every run, before Step 1, silent when clean)
 
-One query for the profile's tasks and one for its projects (both in the reference). Either of these is drift and is resolved with the user right here, before any reconstruction:
+One query for the profile's tasks, one for its projects, and one for the internal project's open tasks (all in the reference). Anything below is drift and is settled right here, before any reconstruction:
 
-- A task in the profile has `TASKRAY__Archived__c = true`. The org accepts inserts against archived tasks silently, so this is the failure that hides longest. On a client project, apply the *live task rule*, show the replacement, and save it once the user confirms. On the internal project, switch to the newest open task, save it, and say so in one line. This is routine and on its own triggers nothing else.
+- A client task in the profile has `TASKRAY__Archived__c = true`. The org accepts inserts against archived tasks silently, so this is the failure that hides longest. Apply the *live task rule*, show the replacement, and save it once the user confirms. This is routine and on its own triggers nothing else.
 - A client project in the profile is completed, archived, or past its end date. Ask whether to drop it from the profile or keep it as is (two options). For the internal project, re-resolve it by name instead (Setup step 4); it is never dropped.
+- **Internal task, every run.** Once the internal project is settled, compare its saved task with the newest open one (first row of the *live task* query). When they differ, switch to the newest, even when the saved one is still open: save it without asking, and say so in one line ("Internal time now goes to <task name>."). Say nothing when it already matches. Only when no task is open, show what's there and ask.
 
 ### Evidence drift (surfaced in the Step 4 proposal)
 

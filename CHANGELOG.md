@@ -10,6 +10,10 @@ head -3 ~/.claude/skills/log-time/SKILL.md
 
 If it is behind the latest below, update with `npx skills update`. For manual copy-based installs, copying is a snapshot, so `git pull` alone does not update an installed skill.
 
+## 1.20.5 (2026-11-25)
+
+- **Internal time moves to the newest open task on every run.** A profile saved on an older internal task that was left open kept logging to it. Each run now looks up the newest open one, switches when it differs, and says so in one line.
+
 ## 1.20.4 (2026-11-25)
 
 - **Internal time goes to the newest open task, without asking.** When the internal project has more than one open time task, setup takes the newest. If the saved one is archived later, a run switches to the newest and says so. Client projects with several open tasks still ask.
