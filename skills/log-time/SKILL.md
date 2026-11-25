@@ -1,6 +1,6 @@
 ---
 name: log-time
-version: 1.20.1
+version: 1.20.2
 description: Use when a Kicksaw consultant needs unlogged work reconstructed and entered as TaskRay time records, when they say "log my time", "fill in yesterday", or ask what they worked on for a date range, and on first use before any time record is written.
 argument-hint: "[date | date range | 'yesterday' | 'today'] (default: from the last logged day before today through today)"
 ---
@@ -18,6 +18,7 @@ The org queries, default picklist values, and the insert payload live in [refere
 - The user's workday hours come from the profile. After-hours, evening, and weekend work counts equally and must be logged.
 - Work goes in the calendar. **A gap usually means they worked and forgot to book it.**
 - Never invent work. If there is no evidence for a gap, list it as unaccounted and ask.
+- **No time record has zero or blank values.** Every standard field is filled and the hours are more than zero, checked before every write (Step 6). When a value is missing, ask for it; never invent one to get a record through.
 - Don't update time records from prior days. If a date/project/activity already has one, **add another record**. Same-day corrections are the exception: a record created today can be merged in place (adjust hours, extend notes) instead of adding a duplicate in the same grouping.
 - **Meeting recorders are read-only.** Never create, edit, share or delete a note or recording, and never open a personal one.
 - Reads in every other org, repo, and Slack stay read-only. Only the org named in the profile is written to, and only the time record object.
@@ -351,6 +352,7 @@ These are exactly what will be written. Write them?
 - One row per date, per project, per Activity Type, with hours from the deduplicated timeline. *Record* is "New", or for a same-day merge (Step 1) "Adds to <record name> (now <total>h)", where Hours is only what this run adds. The Activity Type is its own column so it can be corrected before anything is written. Notes are what Step 6 will write.
 - When calendar hours exceed record hours because of overlap, put both in the day totals ("Mon 8.0 (9.5 on the calendar)").
 - For a date that already had records, show the reconciliation from Step 1 under the table: booked, supported, proposed.
+- There is no row with zero or blank hours, and no row missing a project, a live task, an Activity Type or notes. A difference of zero is not a row. An event with no length, or a row with a missing value, goes back to the user as a question before this table is shown; hours are never padded to reach the 0.25h floor.
 - *Week to date* includes this run. Leave *Allocation* blank for a project with none.
 
 Then stop and wait. If the user changes a row, show the whole table again before writing. If a calendar write in Stage 1 failed partway, say which events landed before showing this stage.
@@ -367,7 +369,7 @@ Title format: `<project label>: <what they did>`, using the profile's `label`. D
 
 Write exactly the rows the user approved in Stage 2: same dates, projects, Activity Types, hours, and notes. Never recompute hours, never combine or split approved rows, and never adjust anything between the approval and the insert. A row marked "Adds to" is a same-day merge: its PATCH sets the record's hours to the booked hours plus the approved hours, the total shown in the row. If something has to change (a picklist value is rejected, a record turns out to exist already), stop, show the changed rows and ask again before writing them.
 
-One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row are the hours approved in Stage 2. Write each payload to a temporary file and insert one at a time so the org's flows fire the way they do from the UI. Each insert takes several seconds, so keep the user informed: after every few records, print one line such as "12 of <total> written", and finish with "All <total> written." A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined. A meeting with a matched recording (Step 2) has a short topic phrase after its title, in parentheses: `ClientA: Sprint planning (cutover scope, test data)`. The calendar event itself isn't changed.
+One record per date, per project, per Activity Type, using the project and task Ids from the profile and the payload in the reference. Hours for each row are the hours approved in Stage 2. Write each payload to a temporary file, run `check_record.py <payload file>` from this folder on it (`--update` for a same-day merge), and go on only when it prints OK. **Never insert or update a record that doesn't pass**, and never invent a value or edit the hours to make it pass: say which row stopped and what is missing, get the value from the user, show the changed row, and go on with the others. Run Python as in Step 8; if Python isn't available, check the fields by hand against *Required values* in the reference. Insert one at a time so the org's flows fire the way they do from the UI. Each insert takes several seconds, so keep the user informed: after every few records, print one line such as "12 of <total> written", and finish with "All <total> written." A same-day merge (Step 1) is a PATCH of hours and both notes fields on the existing record, using the *update* call in the reference; nothing else on the record is touched. Notes are the calendar event titles as written, label prefix included, comma-joined. A meeting with a matched recording (Step 2) has a short topic phrase after its title, in parentheses: `ClientA: Sprint planning (cutover scope, test data)`. The calendar event itself isn't changed.
 
 ### Choosing the Activity Type
 
@@ -400,7 +402,7 @@ A block can split by activity type the same way it splits by project. An hour th
 
 ## Step 7: Verify
 
-Run the *created today* query from the reference and confirm the automation-populated fields match the user's existing records. Internal records legitimately have no Monthly Billing Summary; client records should have one.
+Run the *created today* query from the reference and confirm the automation-populated fields match the user's existing records. Internal records legitimately have no Monthly Billing Summary; client records should have one. Confirm none of the records written has zero or blank hours, or a blank standard field (*Required values* in the reference). If one does, say so and name it; fixing it is the user's call.
 
 Report record names, day totals, and anything still unaccounted for.
 

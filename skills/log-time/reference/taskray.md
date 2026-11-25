@@ -145,14 +145,13 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
   "TASKRAY__Project__c": "<project id from profile>",
   "TASKRAY__Task__c": "<task id from profile>",
   "TASKRAY__Date__c": "YYYY-MM-DD",
-  "TASKRAY__Hours__c": 0.0,
+  "TASKRAY__Hours__c": 1.5,
   "TASKRAY__Owner__c": "<user_id from profile>",
   "TASKRAY__Billable__c": true,
   "TASKRAY__trTimeType__c": "Standard",
   "TASKRAY__trUnsavedTimeEntry__c": false,
   "Bypass_Time_Flow__c": false,
   "Activity_Type__c": "<from the Client Work list>",
-  "HourlyRate__c": 0,
   "Notes__c": "<comma-joined titles, truncated to 255>",
   "Notes_Long_Text__c": "<comma-joined titles, full>"
 }
@@ -162,7 +161,23 @@ Fields to set, and nothing more. The org's own entry flow only asks for owner, p
 
 **`Category__c` ("Work Type") stays blank on client work.** It was taken off the entry flow, it is not required, and the org leaves it null on nearly every record. Do not populate it or propose phase values for it. Internal records keep `Category__c: "Internal"` because that record type allows nothing else.
 
-Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. Everything else (Monthly Billing Summary, Pay Period, Owner Role, Week, hour rollups, Resource Service Line, Team) is set by org automation on insert; never set it by hand.
+Notes live in `Notes__c` and `Notes_Long_Text__c`. `TASKRAY__Notes__c` stays null. Everything else (Monthly Billing Summary, Pay Period, Owner Role, Week, hour rollups, Hourly Rate, Resource Service Line, Team) is set by org automation on insert; never set it by hand.
+
+### Required values
+
+Every record must have all of these, with no blank, zero or placeholder value. `check_record.py` enforces that; whether a picklist value is allowed comes from the profile's `picklists`, and the org.
+
+| Field | Must be |
+| --- | --- |
+| `RecordTypeId`, `TASKRAY__Project__c`, `TASKRAY__Task__c`, `TASKRAY__Owner__c` | A record Id |
+| `TASKRAY__Date__c` | A real date, YYYY-MM-DD |
+| `TASKRAY__Hours__c` | More than zero, in quarter hours |
+| `TASKRAY__Billable__c` | Set to true or false, and false on internal time |
+| `TASKRAY__trTimeType__c`, `Activity_Type__c` | An allowed value |
+| `Notes__c`, `Notes_Long_Text__c` | Text |
+| `Category__c`, `Non_Billable_Reason__c` | Internal time only: an allowed value |
+
+Check the payload file first, and write only when it prints OK (`check_record.py payload.json --update` for a same-day merge).
 
 **Insert one at a time** so the flows fire the way they do from the UI:
 
