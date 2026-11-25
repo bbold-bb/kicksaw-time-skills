@@ -13,6 +13,7 @@ If it is behind the latest below, update with `npx skills update`. For manual co
 ## Guide groups updates by date (2026-11-25, repo only)
 
 - **One What's new entry per date.** Everything released on a date sits in one entry, grouped by area, with each change's version in parentheses. A release on a date already listed adds to that entry. No skill changes.
+- **More general wording in What's new.** Entries say what changed without describing how things worked before. tl;dv, Zoom, ZoomInfo and Plaud are listed under Coming next.
 
 ## 1.20.5 (2026-11-25)
 
